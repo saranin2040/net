@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ru.nsu.fit.Controller.LocationDescriptionController">
+   <children>
+
+      <ImageView fitHeight="600.0" fitWidth="1007.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@images/desc.jpg" />
+         </image>
+      </ImageView>
+
+      <TextArea fx:id="weather" layoutX="310.0" layoutY="469.0" prefHeight="115.0" prefWidth="298.0" />
+
+      <TextArea fx:id="places" layoutX="14.0" layoutY="60.0" prefHeight="354.0" prefWidth="438.0">
+         <font>
+            <Font size="14.0" />
+         </font></TextArea>
+
+      <Button fx:id="backButton" layoutX="670.0" layoutY="483.0" mnemonicParsing="false" onMouseClicked="#goBack" prefHeight="54.0" prefWidth="174.0" style="-fx-background-color: rgb(255,0,0); -fx-background-radius: 100; -fx-border-color: BLACK; -fx-border-radius: 100;" text="Back">
+         <font>
+            <Font size="35.0" />
+         </font>
+      </Button>
+
+      <TextArea fx:id="descriptions" layoutX="466.0" layoutY="60.0" prefHeight="354.0" prefWidth="419.0">
+         <font>
+            <Font size="14.0" />
+         </font></TextArea>
+
+      <Label layoutX="182.0" layoutY="9.0" prefHeight="50.0" prefWidth="101.0" text="Places">
+         <font>
+            <Font size="34.0" />
+         </font>
+      </Label>
+
+      <Label layoutX="610.0" layoutY="17.0" text="Descriptions">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="393.0" layoutY="419.0" prefHeight="50.0" prefWidth="131.0" text="Weather">
+         <font>
+            <Font size="34.0" />
+         </font>
+      </Label>
+
+   </children>
+</AnchorPane>
