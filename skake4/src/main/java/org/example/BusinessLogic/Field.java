@@ -11,6 +11,12 @@ public class Field
         this.maxFoods=maxFoods;
         spawnFoods(new ArrayList<Coords>());
     }
+    Field (int width, int height,int maxFoods,String t)
+    {
+        this.width = width;
+        this.height = height;
+        this.maxFoods=maxFoods;
+    }
     public void spawnFoods(ArrayList<Coords> busysCoords)
     {
         if(foods.size()<maxFoods)

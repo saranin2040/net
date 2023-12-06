@@ -112,6 +112,11 @@ public class DataGameAnnouncement
         return delayMs;
     }
 
+    public boolean ifOffline()
+    {
+        return Math.abs(System.currentTimeMillis()-timeMulticast)>STATE_DELAY_MS*0.8;
+    }
+
     private String ip;
     private String gameName;
     private int width;
@@ -125,4 +130,6 @@ public class DataGameAnnouncement
     private long timeMulticast=System.currentTimeMillis();
 
     ArrayList<Player> players=new ArrayList<>();
+
+    private static int STATE_DELAY_MS=5000;
 }

@@ -8,6 +8,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Receiver
 {
+    public Receiver(String ip, int port,int senderId,int receiverId)
+    {
+        this.ip=ip;
+        this.port=port;
+        this.receiverId=receiverId;
+        this.senderId=senderId;
+    }
+
     public Receiver(String ip, int port)
     {
         this.ip=ip;
@@ -58,12 +66,25 @@ public class Receiver
         }
     }
 
+    public void putGameMessage(DataGameMessage message,int senderId,int receiverId)
+    {
+        if (message!=null) {
+            gameMessages.offer(message);
+        }
+
+        this.senderId=senderId;
+        this.receiverId=receiverId;
+
+    }
+
     public void deleteGameMessage(SnakesProto.GameMessage messageNeeded)
     {
         Iterator<DataGameMessage> iterator = gameMessages.iterator();
         while (iterator.hasNext()) {
             DataGameMessage message = iterator.next();
-            if (message.getGameMessage().getMsgSeq() == messageNeeded.getMsgSeq()) {
+            if (message.getGameMessage().getMsgSeq() == messageNeeded.getMsgSeq())
+            {
+                //System.err.println("[DELETE] send {" + message.getGameMessage().getTypeCase() + "}");
                 iterator.remove();
                 break;
             }
@@ -102,11 +123,30 @@ public class Receiver
 
     public boolean isOffline()
     {
+        for (DataGameMessage dataGameMessage:gameMessages)
+        {
+            if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.JOIN)
+            {
+                return false;
+            }
+        }
+
         return Math.abs(System.currentTimeMillis()-timeLastReceive)>STATE_DELAY_MS*0.8;
+    }
+
+    public int getReceiverId()
+    {
+        return  receiverId;
+    }
+    public int getSenderId()
+    {
+        return senderId;
     }
 
     private String ip;
     private int port;
+    private int senderId=0;
+    private int receiverId=0;
     private long timeLastSend=System.currentTimeMillis();
     private long timeLastReceive=System.currentTimeMillis();
     private BlockingQueue<DataGameMessage> gameMessages = new LinkedBlockingQueue<>();

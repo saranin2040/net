@@ -9,7 +9,10 @@ public class JoiningPanel extends JPanel
         setLayout(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Выравнивание по центру
 
         JLabel label = new JLabel(text);
-        label.setHorizontalAlignment(JLabel.CENTER); // Выравнивание текста по центру
+        label.setHorizontalAlignment(JLabel.CENTER);
+        label.setVerticalAlignment(JLabel.CENTER);
+        label.setFont(new Font("Arial", Font.PLAIN, 100));
+// Выравнивание текста по центру
 
         add(label);
     }

@@ -10,8 +10,8 @@ import java.util.HashMap;
 
 public interface ReceiveNeedInformation
 {
-    public HashMap<String, SnakesProto.GameMessage> getPlayersDirection();
+    public HashMap<Adress, SnakesProto.GameMessage> getPlayersDirection();
     public SnakesProto.GameState getGameState();
     public ArrayList<Adress> getWantedViewers();
-    public void sendChangeRoleReceiver(String ip, int port,SnakesProto.NodeRole role);
+    public void sendChangeRoleReceiver(String ip, int senderId,int receiverId,int port,SnakesProto.NodeRole role);
 }

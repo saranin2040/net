@@ -14,13 +14,21 @@ public class DataMulticastServer
             foundGames.add(foundGame);
         }
 
-//        for (DataGameAnnouncement f:foundGames)
-//        {
-//            if (f.equals(foundGame))
-//            {
-//                f.setTime(System.currentTimeMillis());
-//            }
-//        }
+        for (DataGameAnnouncement f:foundGames)
+        {
+            if (f.equals(foundGame))
+            {
+                f.setTime(System.currentTimeMillis());
+            }
+        }
+
+        Iterator<DataGameAnnouncement> iterator = foundGames.iterator();
+        while (iterator.hasNext()) {
+            DataGameAnnouncement f = iterator.next();
+            if (f.ifOffline()) {
+                iterator.remove(); // спользуем итератор для безопасного удаления
+            }
+        }
 
     }
 

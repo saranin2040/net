@@ -25,21 +25,23 @@ public class BusinessLogic
             // System.out.print("update");
             if (game != null && network.isDataServer()) {
 
-                if (game.getMainPlayer().getRole() == SnakesProto.NodeRole.DEPUTY && network.isOffline(new Adress(game.getMainPlayer().getIpAddress(), game.getMainPlayer().getPort()))) {
+                if ((game.getMainPlayer().getRole() == SnakesProto.NodeRole.DEPUTY || network.getDeputy()) && network.isOffline(network.getMasterAdress())) {
                     becomeMaster();
                 }
 
+                //System.err.println("i see from update "+network.getSer());
                 game.update(network);
 
                 if (game instanceof GameMaster) {
                     GameMaster gameMaster = (GameMaster) game;
                     addPlayers();
                     if ((gameMaster.getDeputyPlayer() == null ||
-                            network.isOffline(new Adress(game.getMainPlayer().getIpAddress(), game.getMainPlayer().getPort())))
+                            network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
                             && gameMaster.getPlayers().size() >= 2) {
                         for (Player player : gameMaster.getPlayers()) {
                             if (player.getRole() == SnakesProto.NodeRole.NORMAL) {
-                                network.sendToBeDeputy(player.getIpAddress(), player.getPort());
+                                network.sendToBeDeputy(player.getIpAddress(), player.getPort(),game.getMainPlayer().getId(),
+                                        player.getId());
                                 gameMaster.setDeputy(player);
                                 break;
                             }
@@ -57,16 +59,25 @@ public class BusinessLogic
         return game;
     }
 
+    public String getPlayerName()
+    {
+        return playerName;
+    }
+
     public boolean joinToGame(String ip, String gameName)
     {
-        if (status!=StatusGame.JOINING) {
+        System.err.println("i see from join ");
+
+        if (status!=StatusGame.JOINING)
+        {
+            restart();
             status = StatusGame.JOINING;
             if (network.getFoundGames().contains(new DataGameAnnouncement(ip, gameName))) {
-                game = network.startNormalServer(ip, gameName);
+                game = network.startNormalServer(ip, gameName,playerName);
 
                 if (game != null) {
                     status = StatusGame.PLAY;
-                    System.out.println("i joined! " + network.getGameState().getPlayers().getPlayersCount());
+                    //System.out.println("i joined! " + network.getGameState().getPlayers().getPlayersCount());
                 }
             }
             return false;
@@ -76,14 +87,20 @@ public class BusinessLogic
 
     public void becomeMaster()
     {
+        network.setDeputy(false);
+
         game=new GameMaster(game.getGameName(),game.getMainPlayer(),game.getField().getWidth(),game.getField().getHeight(),
-                game.getField().getMaxFoods(),game.getDelayMs(),game.getPlayers(),game.getSnakes());
+                game.getField().getMaxFoods(),game.getDelayMs(),game.getPlayers(),game.getSnakes(),network.getMasterAdress(),game);
 
         network.sendChangeMaster((GameMaster) game);
+        network.setServerMaster(game);
         status=StatusGame.PLAY;
+
+        System.out.println("i have became master!");
     }
     public synchronized void createNewGame(String gameName,int width,int height,int foods, int delay)
     {
+        restart();
         game=menu.createNewGame(gameName,playerName,width,height,foods,delay);
         network.startMasterServer(game);
         status=StatusGame.PLAY;
@@ -115,9 +132,50 @@ public class BusinessLogic
     {
         return status;
     }
+    public void restart()
+    {
+        if (game != null) {
+            if (game instanceof GameMaster) {
+                GameMaster gameMaster = (GameMaster) game;
+
+                if ((gameMaster.getDeputyPlayer() == null ||
+                        network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
+                        && gameMaster.getPlayers().size() >= 2)
+                {
+                    network.sendLastTryToMakeDeputy(gameMaster);
+                } else if ((gameMaster.getDeputyPlayer() != null &&
+                        !network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))) {
+                    network.sendToDeputyThatMasterLeave(game);
+                }
+            }
+            game=null;
+        }
+
+        status=StatusGame.NONE;
+        //network.exit();
+    }
+
     public void exit()
     {
+        if (game != null) {
+            if (game instanceof GameMaster) {
+                GameMaster gameMaster = (GameMaster) game;
 
+                if ((gameMaster.getDeputyPlayer() == null ||
+                        network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
+                        && gameMaster.getPlayers().size() >= 2)
+                {
+                    network.sendLastTryToMakeDeputy(gameMaster);
+                } else if ((gameMaster.getDeputyPlayer() != null &&
+                        !network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))) {
+                    network.sendToDeputyThatMasterLeave(game);
+                }
+            }
+            game=null;
+        }
+
+        status=StatusGame.NONE;
+        network.exit();
     }
     private void startCheckGames()
     {
@@ -126,11 +184,14 @@ public class BusinessLogic
     private void addPlayers()
     {
         GameMaster gameMaster = (GameMaster) game;
+
+
         HashMap<Long,Player> accededPlayers=network.getAccededPlayers();
 
-
+        //System.out.println("i see from add player "+network.getSome());
 
         if (accededPlayers!=null) {
+            System.out.println("WOW!");
             for (long msgSeq : accededPlayers.keySet()) {
                 Integer playerId = gameMaster.addPlayer(accededPlayers.get(msgSeq));
                 if (playerId != null) {
@@ -140,6 +201,11 @@ public class BusinessLogic
                 }
             }
         }
+    }
+
+    public void setPlayerName(String playerName)
+    {
+        this.playerName = playerName;
     }
 
 

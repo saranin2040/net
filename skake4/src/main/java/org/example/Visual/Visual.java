@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Visual extends JFrame {
 
@@ -97,27 +98,47 @@ public class Visual extends JFrame {
                                     "</div></html>");
 
         JButton exitButton = new JButton("Exit");
+        JButton playerNameButton = new JButton("<html><div style='text-align: center;'>" +
+                "<div style='padding-top: 20px;'>Change</div>" +
+                "<div style='padding-bottom: 20px;'>Player</div>" +
+                "<div style='padding-bottom: 20px;'>Name</div>" +
+                "</div></html>");
 
 // Добавьте обработчики событий для кнопок
         createGameButton.addActionListener(e -> {
             bc.setStatusBuilding();
         });
 
+        playerNameButton.addActionListener(e -> {
+            if (bc.getStatus()==StatusGame.NONE) {
+                System.out.println("enter player name:");
+                Scanner scanner = new Scanner(System.in);
+                String str = scanner.nextLine();
+
+                bc.setPlayerName(str);
+                System.out.println("change name: "+bc.getPlayerName());
+            }
+        });
+
         exitButton.addActionListener(e -> {
             // Действия при нажатии "Exit"
-            System.exit(0); // Выход из программы
+            bc.exit();
+            //System.exit(0); // Выход из программы
         });
 
         Font buttonFont = new Font("Arial", Font.PLAIN, 46); // мя шрифта, стиль (PLAIN, BOLD, ITALIC), размер
         createGameButton.setFont(buttonFont);
         exitButton.setFont(buttonFont);
+        playerNameButton.setFont(new Font("Arial", Font.PLAIN, 10));
 
         createGameButton.setPreferredSize(new Dimension(300, 150)); // Ширина 150, высота 50
         exitButton.setPreferredSize(new Dimension(150, 150));
+        playerNameButton.setPreferredSize(new Dimension(20, 150));
 
 // Добавьте кнопки на панель
         buttonPanel.add(createGameButton);
         buttonPanel.add(exitButton);
+        buttonPanel.add(playerNameButton);
 
 
         JSplitPane list = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, playersPanel.container, gameInfoPanel.container);
@@ -153,7 +174,7 @@ public class Visual extends JFrame {
                 updateGameTable(bc.getListFoundGame());
             }
         });
-        timer.start(); // Запуск таймера
+        timer.start();
     }
 
 
@@ -218,7 +239,7 @@ public class Visual extends JFrame {
             playersPanel.list.removeAll();
             gameInfoPanel.list.removeAll();
 
-            paintPlayers(game.getPlayers());
+            paintPlayers(game.getPlayersRate());
             paintGameInf(game);
         }
 

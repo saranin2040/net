@@ -40,7 +40,7 @@ public class MainController {
 //            int delay = scanInt();
 
             //bc.createNewGame(name,playerName,width,height,foods,delay);
-            bc.createNewGame("Nemo",20,20,10,500);
+            bc.createNewGame("Nemo",20,20,10,1000);
         }
         else {
             while(true)
@@ -89,10 +89,11 @@ public class MainController {
 
         while(true)
         {
+            //System.out.println("update");
             bc.updateGame();
 //            SwingUtilities.invokeLater(() -> {
-//                //app.update2(bc.getGame());
-//                //app.updateGameTable(bc.getListFoundGame());
+//                app.update2(bc.getGame());
+//                app.updateGameTable(bc.getListFoundGame());
 //                 });
 
 //

@@ -31,22 +31,29 @@ public class MessageBuilder
         return SnakesProto.GameMessage.SteerMsg.newBuilder().setDirection(direction).build();
     }
 
-    static public SnakesProto.GameMessage getChangeRoleSender(SnakesProto.NodeRole role, long msgSeq)
+    static public SnakesProto.GameMessage getChangeRoleSender(SnakesProto.NodeRole role, int senderId,int receiverId, long msgSeq)
     {
         return SnakesProto.GameMessage.newBuilder().setRoleChange(SnakesProto.GameMessage.RoleChangeMsg
-                .newBuilder().setSenderRole(role).build()).setMsgSeq(msgSeq).build();
+                .newBuilder().setSenderRole(role).build())
+                .setSenderId(senderId)
+                .setReceiverId(receiverId).setMsgSeq(msgSeq).build();
     }
 
-    static public SnakesProto.GameMessage getChangeRoleSendRec(SnakesProto.NodeRole roleSend, SnakesProto.NodeRole roleRec,long msgSeq)
+    static public SnakesProto.GameMessage getChangeRoleSendRec(SnakesProto.NodeRole roleSend, SnakesProto.NodeRole roleRec,int senderId,int receiverId,long msgSeq)
     {
         return SnakesProto.GameMessage.newBuilder().setRoleChange(SnakesProto.GameMessage.RoleChangeMsg
-                .newBuilder().setSenderRole(roleSend).setReceiverRole(roleRec).build()).setMsgSeq(msgSeq).build();
+                .newBuilder().setSenderRole(roleSend).setReceiverRole(roleRec).build())
+                .setSenderId(senderId)
+                .setReceiverId(receiverId)
+                .setMsgSeq(msgSeq).build();
     }
 
-    static public SnakesProto.GameMessage getChangeRoleReceiver(SnakesProto.NodeRole role, long msgSeq)
+    static public SnakesProto.GameMessage getChangeRoleReceiver(SnakesProto.NodeRole role, int senderId,int receiverId, long msgSeq)
     {
         return SnakesProto.GameMessage.newBuilder().setRoleChange(SnakesProto.GameMessage.RoleChangeMsg
-                .newBuilder().setReceiverRole(role).build()).setMsgSeq(msgSeq).build();
+                .newBuilder().setReceiverRole(role).build())
+                .setSenderId(senderId)
+                .setReceiverId(receiverId).setMsgSeq(msgSeq).build();
     }
 
     static public SnakesProto.GameMessage getPingMsg(long msgSeq)
@@ -110,9 +117,15 @@ public class MessageBuilder
             gamePlayers.addPlayers(getPlayer(players.get(i)));
         }
 
-        for (int i=0;i<snakes.size();i++)
+        try {
+
+            for (int i = 0; i < snakes.size(); i++) {
+                gameState.addSnakes(getSnake(snakes.get(i), snakes.get(i).getId(), game.getField().getWidth(), game.getField().getHeight()));
+            }
+        }
+        catch (IndexOutOfBoundsException e)
         {
-            gameState.addSnakes(getSnake(snakes.get(i), players.get(i).getId(), game.getField().getWidth(),game.getField().getHeight()));
+            e.printStackTrace();
         }
 
         gamePlayers.build();
@@ -231,6 +244,11 @@ public class MessageBuilder
                 .setRole(player.getRole())
                 .setType(player.getType())
                 .build();
+
+        if (player.getPort()!=-1)
+        {
+            gamePlayer.setPort(player.getPort());
+        }
 
         if (player.getIpAddress()!=null)
         {

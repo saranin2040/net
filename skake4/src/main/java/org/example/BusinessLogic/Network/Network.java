@@ -18,25 +18,61 @@ public class Network implements ReceiveNeedInformation
         return dataServer!=null;
     }
 
-    public void startMasterServer(Game game)
+    public void exit()
     {
-        dataServer=new DataServer(game);
+        if (server!=null) {
+            server.interrupt();
+            dataServer = null;
+            serverWork=false;
+        }
+    }
+
+    public int getSome()
+    {
+        return dataServer.o;
+    }
+
+    public void setServerMaster(Game game)
+    {
         dataServer.update(game);
         dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
                 game.getField().getHeight(),
                 game.getField().getMaxFoods(),
                 game.getDelayMs()));
-        server = new Thread(new Server(dataServer, Role.MASTER));
-        server.start();
+
+        dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
     }
-    public GameJoined startNormalServer(String ip, String gameName)
+
+    public void startMasterServer(Game game)
+    {
+        if (dataServer==null) {
+            dataServer = new DataServer(game);
+        }
+
+            dataServer.update(game);
+            dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
+                    game.getField().getHeight(),
+                    game.getField().getMaxFoods(),
+                    game.getDelayMs()));
+            server = new Thread(new Server(dataServer, Role.MASTER));
+
+        dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
+
+        if (!serverWork) {
+            server.start();
+            serverWork=true;
+        }
+    }
+    public GameJoined startNormalServer(String ip, String gameName, String playerName)
     {
         DataGameAnnouncement dataGameAnnouncement = getAnForIp(ip,gameName);
 
-        dataServer=new DataServer(dataGameAnnouncement.getDelayMs());
+        if (dataServer==null) {
+            dataServer = new DataServer(dataGameAnnouncement.getDelayMs());
+        }
 
         dataServer.putGameMessages(new DataGameMessage(ip,dataGameAnnouncement.getPort(),
-                MessageBuilder.getJoinMsg(gameName,"srarnin2040", SnakesProto.NodeRole.NORMAL,dataServer.pollMsgSeq())));
+                MessageBuilder.getJoinMsg(gameName,playerName, SnakesProto.NodeRole.NORMAL,dataServer.pollMsgSeq())));
 
 
 //        dataServer.setIpJoinGame(ip);
@@ -48,8 +84,14 @@ public class Network implements ReceiveNeedInformation
 
         //dataServer.setPort(port);
 
-        server = new Thread(new Server(dataServer,Role.NORMAL));
-        server.start();
+        dataServer.setServerRole(SnakesProto.NodeRole.NORMAL);
+
+        if (!serverWork) {
+            server = new Thread(new Server(dataServer, Role.NORMAL));
+            server.start();
+            serverWork=true;
+            System.err.println("bad");
+        }
 
 
         SnakesProto.GameMessage ackMsg = dataServer.isJoin();
@@ -88,7 +130,8 @@ public class Network implements ReceiveNeedInformation
         for (Player player:game.getPlayers())
         {
             if (player.getRole()!= SnakesProto.NodeRole.MASTER) {
-                dataServer.putGameMessages(new DataGameMessage(player.getIpAddress(), player.getPort(), gameMessage));
+                dataServer.putGameMessagesAck(new DataGameMessage(player.getIpAddress(), player.getPort(), gameMessage),game.getMainPlayer().getId(),
+                        player.getId());
             }
         }
 
@@ -123,7 +166,8 @@ public class Network implements ReceiveNeedInformation
         int port =dataServer.getMaster().getPort();
 
         if (!dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getSteerMsg(direction,game.getMainPlayer().getId(),dataServer.pollMsgSeq()))))
+                MessageBuilder.getSteerMsg(direction,game.getMainPlayer().getId(),dataServer.pollMsgSeq()))) &&
+        game.getDeputyPlayer()!=null)
         {
             ip=game.getDeputyPlayer().getIpAddress();
             port =game.getDeputyPlayer().getPort();
@@ -141,9 +185,13 @@ public class Network implements ReceiveNeedInformation
         return dataServer.isOffline(adress);
     }
 
-    public HashMap<String, SnakesProto.GameMessage> getPlayersDirection()
+    public HashMap<Adress, SnakesProto.GameMessage> getPlayersDirection()
     {
-        return dataServer.getChgPlDir();
+        if (dataServer!=null)
+        {
+            return dataServer.getChgPlDir();
+        }
+        return new HashMap<>();
     }
 
     public DataGameAnnouncement getAnForIp(String ip,String gameName)
@@ -162,8 +210,8 @@ public class Network implements ReceiveNeedInformation
 
     public void sendAckMsg(String ip,int port,int senderId,int receiverId,long msgSeq)
     {
-        dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getAckMsg(senderId,receiverId,msgSeq)));
+        dataServer.putGameMessagesAck(new DataGameMessage(ip,port,
+                MessageBuilder.getAckMsg(senderId,receiverId,msgSeq)),senderId,receiverId);
     }
 
     public void sendErrorMsg(String ip,int port,long msgSeq,String error)
@@ -185,26 +233,34 @@ public class Network implements ReceiveNeedInformation
         return dataServer.getOfflineReceivers();
     }
 
-    public void sendToBeDeputy(String ip,int port)
+    public void sendToBeDeputy(String ip,int port, int senderId,int receiverId)
     {
         dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getChangeRoleReceiver(SnakesProto.NodeRole.DEPUTY,dataServer.pollMsgSeq())));
+                MessageBuilder.getChangeRoleReceiver(SnakesProto.NodeRole.DEPUTY,senderId,receiverId,dataServer.pollMsgSeq())));
     }
 
     public void sendChangeMaster(GameMaster game)
     {
-        SnakesProto.GameMessage gameMessage = MessageBuilder.getChangeRoleSender(SnakesProto.NodeRole.MASTER,dataServer.pollMsgSeq());
-        SnakesProto.GameMessage gameMessageDep = MessageBuilder.getChangeRoleSendRec(SnakesProto.NodeRole.MASTER,SnakesProto.NodeRole.DEPUTY,dataServer.getMsgSeq());
+
+
 
         for (Player player:game.getPlayers())
         {
             if (player.getRole()!= SnakesProto.NodeRole.MASTER) {
-                if (game.getDeputyPlayer()==null && player.getRole()== SnakesProto.NodeRole.NORMAL )
+                if (game.getDeputyPlayer()==null && player.getRole()== SnakesProto.NodeRole.NORMAL)
                 {
+                    SnakesProto.GameMessage gameMessageDep = MessageBuilder.getChangeRoleSendRec(SnakesProto.NodeRole.MASTER
+                            ,SnakesProto.NodeRole.DEPUTY,game.getMainPlayer().getId(),
+                            player.getId()
+                            ,dataServer.getMsgSeq());
+
                     dataServer.putGameMessages(new DataGameMessage(player.getIpAddress(), player.getPort(), gameMessageDep));
                     game.setDeputy(player);
                 }
                 else {
+
+                    SnakesProto.GameMessage gameMessage = MessageBuilder.getChangeRoleSender(SnakesProto.NodeRole.MASTER,game.getMainPlayer().getId(),
+                            player.getId(),dataServer.pollMsgSeq());
 
                     dataServer.putGameMessages(new DataGameMessage(player.getIpAddress(), player.getPort(), gameMessage));
                 }
@@ -212,25 +268,27 @@ public class Network implements ReceiveNeedInformation
         }
     }
 
-    public void sendChangeRoleReceiver(String ip, int port,SnakesProto.NodeRole role)
+    public void sendChangeRoleReceiver(String ip, int port, int senderId,int receiverId,SnakesProto.NodeRole role)
     {
         dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getChangeRoleReceiver(role,dataServer.pollMsgSeq())));
+                MessageBuilder.getChangeRoleReceiver(role,senderId,receiverId,dataServer.pollMsgSeq())));
     }
 
-    public void sendChangeRoleSender(String ip, int port,SnakesProto.NodeRole role)
+    public void sendChangeRoleSender(String ip, int port, int senderId,int receiverId,SnakesProto.NodeRole role)
     {
         dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getChangeRoleSender(role,dataServer.pollMsgSeq())));
+                MessageBuilder.getChangeRoleSender(role,senderId,receiverId,dataServer.pollMsgSeq())));
     }
 
-    public void sendLastTryToMakeDeputy(Game game)
+    public void sendLastTryToMakeDeputy(GameMaster game)
     {
         for (Player player : game.getPlayers()) {
-            if (player.getRole() == SnakesProto.NodeRole.NORMAL) {
+            if (player.getRole() == SnakesProto.NodeRole.NORMAL)
+            {
                 dataServer.putGameMessages(new DataGameMessage(player.getIpAddress(), player.getPort(),
                         MessageBuilder.getChangeRoleSendRec(SnakesProto.NodeRole.VIEWER,
-                                SnakesProto.NodeRole.DEPUTY,dataServer.pollMsgSeq())));
+                                SnakesProto.NodeRole.DEPUTY,game.getMainPlayer().getId(),
+                                game.getDeputyPlayer().getId(),dataServer.pollMsgSeq())));
                 break;
             }
         }
@@ -241,7 +299,23 @@ public class Network implements ReceiveNeedInformation
     {
         dataServer.putGameMessages(new DataGameMessage(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort(),
                 MessageBuilder.getChangeRoleSendRec(SnakesProto.NodeRole.VIEWER,
-                        SnakesProto.NodeRole.MASTER,dataServer.pollMsgSeq())));
+                        SnakesProto.NodeRole.MASTER,game.getMainPlayer().getId(),
+                        game.getDeputyPlayer().getId(),dataServer.pollMsgSeq())));
+    }
+
+    public Adress getMasterAdress()
+    {
+        return dataServer.getMaster();
+    }
+
+    public void setDeputy(boolean bool)
+    {
+        dataServer.setDeputy(bool);
+    }
+
+    public boolean getDeputy()
+    {
+        return dataServer.getDeputy();
     }
 
     Thread server;
@@ -249,4 +323,6 @@ public class Network implements ReceiveNeedInformation
     DataMulticastServer dataMulticastServer=new DataMulticastServer();
     Thread multicastReceiveServer;
     MulticastReceive multicastReceive;
+
+    boolean serverWork=false;
 }

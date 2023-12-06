@@ -14,4 +14,6 @@ public interface Game
     public Player getMainPlayer();
     public Field getField();
 
+    public ArrayList<Player> getPlayersRate();
+
 }

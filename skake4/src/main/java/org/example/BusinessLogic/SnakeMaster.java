@@ -20,9 +20,10 @@ public class SnakeMaster implements Snake
         this.direct=snake.getDirect();
         this.id=snake.getId();
         this.state=snake.getState();
+        this.body=new LinkedList<>(snake.getBody());
     }
 
-    public void move(SnakesProto.Direction direct, int width, int height)
+    public synchronized void move(SnakesProto.Direction direct, int width, int height)
     {
         this.direct=direct;
 
@@ -79,7 +80,7 @@ public class SnakeMaster implements Snake
         }
         return new Coords(-1,-1);
     }
-    public ArrayList<Coords> getBody()
+    public synchronized ArrayList<Coords> getBody()
     {
         return new ArrayList<Coords>(body);
     }

@@ -59,7 +59,7 @@ public class PlayerJoined implements Player
             return false;
         }
         Player other = (Player) obj;
-        return this.ipAddress == other.getIpAddress() && this.port == other.getPort();
+        return this.ipAddress.equals(other.getIpAddress()) && this.port == other.getPort();
     }
 
 

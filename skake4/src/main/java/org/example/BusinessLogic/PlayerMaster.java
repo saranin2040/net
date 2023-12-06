@@ -1,6 +1,7 @@
 package org.example.BusinessLogic;
 
 import me.ippolitov.fit.snakes.SnakesProto;
+import org.example.BusinessLogic.Network.Data.Adress;
 
 import java.util.HashMap;
 
@@ -17,6 +18,15 @@ public class PlayerMaster implements Player
         this.playersType = playersType;
     }
 
+    public PlayerMaster(int score, String name, int id, SnakesProto.NodeRole role,
+                        SnakesProto.PlayerType playersType) {
+        this.score = score;
+        this.name = name;
+        this.id = id;
+        this.role = role;
+        this.playersType = playersType;
+    }
+
     public PlayerMaster(String ipAddress, int port, String name, SnakesProto.NodeRole role, SnakesProto.PlayerType type)
     {
         this.name = name;
@@ -29,6 +39,12 @@ public class PlayerMaster implements Player
     {
         this.ipAddress = ipAddress;
         this.port = port;
+    }
+
+    public PlayerMaster(Adress adress)
+    {
+        this.ipAddress = adress.getIp();
+        this.port = adress.getPort();
     }
 
     public PlayerMaster(Player player,int id)
@@ -55,7 +71,10 @@ public class PlayerMaster implements Player
             return false;
         }
         Player other = (Player) obj;
-        return this.ipAddress == other.getIpAddress() && this.port == other.getPort();
+        if (this.ipAddress!=null && other.getIpAddress()!=null) {
+            return this.ipAddress.equals(other.getIpAddress()) && this.port == other.getPort();
+        }
+        return false;
     }
 
     public PlayerMaster cloneSelf() {
@@ -145,8 +164,8 @@ public class PlayerMaster implements Player
     private int score;
     private String name;
     private int id=-1;
-    private String ipAddress;
-    private int port;
+    private String ipAddress=null;
+    private int port=-1;
     private SnakesProto.NodeRole role;
     private SnakesProto.PlayerType playersType;
 

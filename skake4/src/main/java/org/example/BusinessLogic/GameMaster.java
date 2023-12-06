@@ -13,22 +13,46 @@ public class GameMaster implements GameUpdate
         this.gameName=gameName;
         this.field=new Field(width,height,foods);
         this.delayMs=delay;
-        mainPlayer=new PlayerMaster(0, playerName, 0, "1", 0, SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
-        players.put(0,mainPlayer);
-        snakes.put(0,new SnakeMaster(0,getFreeCoords()));
+        mainPlayer=new PlayerMaster(0, playerName, 1, SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
+        players.put(1,mainPlayer);
+        snakes.put(1,new SnakeMaster(1,getFreeCoords()));
     }
 
-    public GameMaster(String gameName,Player player, int width,int height,int foods, int delay,ArrayList<Player> players ,ArrayList<Snake> snakes)
+    public GameMaster(String gameName,Player player, int width,int height,int foods, int delay,ArrayList<Player> players ,ArrayList<Snake> snakes,Adress adressM,Game game)
     {
         this.gameName=gameName;
-        this.field=new Field(width,height,foods);
+        this.field=game.getField();
         this.delayMs=delay;
-        mainPlayer=new PlayerMaster(player.getScore(), player.getName(), player.getId(), player.getIpAddress(), player.getPort(), SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
+        //mainPlayer=new PlayerMaster(player.getScore(), player.getName(), player.getId(), player.getIpAddress(), player.getPort(), SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
 
         for (Player player1:players)
         {
-            this.players.put(player1.getId(),new PlayerMaster(player1,player1.getId()));
+            if (player1.getRole()== SnakesProto.NodeRole.DEPUTY)
+            {
+                PlayerMaster playerMaster=new PlayerMaster(player1,player1.getId());
+                playerMaster.setRole(SnakesProto.NodeRole.MASTER);
+                mainPlayer=playerMaster;
+            }
+            else if (player1.getRole() == SnakesProto.NodeRole.MASTER)
+            {
+                PlayerMaster playerMaster=new PlayerMaster(player1,player1.getId());
+                playerMaster.setRole(SnakesProto.NodeRole.VIEWER);
+                playerMaster.setIpAddress(adressM.getIp());
+                playerMaster.setPort(adressM.getPort());
+                this.players.put(playerMaster.getId(),playerMaster);
+            }
+            else {
+
+                this.players.put(player1.getId(), new PlayerMaster(player1, player1.getId()));
+            }
+
+            if (player1.getId()>lastPlayerId)
+            {
+                lastPlayerId=player1.getId();
+            }
         }
+
+        this.players.put(mainPlayer.getId(),mainPlayer);
 
         for (Snake snake:snakes)
         {
@@ -48,6 +72,18 @@ public class GameMaster implements GameUpdate
         return deputyPlayer;
     }
 
+    public ArrayList<Player> getPlayersRate()
+    {
+        ArrayList<Player> sortedPlayers=new ArrayList<>(players.values());
+
+        Comparator<Player> scoreComparator = Comparator.comparingInt(Player::getScore).reversed();
+
+        // Сортируем список
+        Collections.sort(sortedPlayers, scoreComparator);
+
+        return sortedPlayers;
+    }
+
     public Player getMainPlayer()
     {
         return mainPlayer;
@@ -57,7 +93,7 @@ public class GameMaster implements GameUpdate
 
         for(Player player1:players.values())
         {
-            if (player1.getIpAddress().equals(player.getIpAddress()) && player1.getPort()==player.getPort())
+            if (player1.getIpAddress()!=null && player1.getIpAddress().equals(player.getIpAddress()) && player1.getPort()==player.getPort())
             {
                 return null;
             }
@@ -159,16 +195,16 @@ public class GameMaster implements GameUpdate
         return null;
     }
 
-    private void changePlayersDirection(HashMap<String, SnakesProto.GameMessage> list_ChangedPlayerDirection)
+    private void changePlayersDirection(HashMap<Adress, SnakesProto.GameMessage> list_ChangedPlayerDirection)
     {
         if (list_ChangedPlayerDirection!=null) {
-            for (String ipPlayer : list_ChangedPlayerDirection.keySet())
+            for (Adress adress : list_ChangedPlayerDirection.keySet())
             {
                 for (PlayerMaster player:players.values())
                 {
-                    if (player.getIpAddress().equals(ipPlayer))
+                    if (player.equals(new PlayerMaster(adress)))
                     {
-                        player.setDirect(list_ChangedPlayerDirection.get(ipPlayer).getSteer().getDirection());
+                        player.setDirect(list_ChangedPlayerDirection.get(adress).getSteer().getDirection());
                         break;
                     }
                 }
@@ -233,10 +269,10 @@ public class GameMaster implements GameUpdate
 
             if (busysCoords.contains(snake.getValue().getCoords()))
             {
-                if (players.containsKey(snake.getKey()) &&  players.get(snake.getKey()).getRole()!= SnakesProto.NodeRole.VIEWER &&  players.get(snake.getKey()).getRole()!= SnakesProto.NodeRole.MASTER)
+                if (players.containsKey(snake.getKey()) &&  players.get(snake.getKey()).getRole()== SnakesProto.NodeRole.NORMAL)
                 {
                     players.get(snake.getKey()).changeRole(SnakesProto.NodeRole.VIEWER);
-                    receiveNeedInformation.sendChangeRoleReceiver(players.get(snake.getKey()).getIpAddress(),players.get(snake.getKey()).getPort(),SnakesProto.NodeRole.VIEWER);
+                    receiveNeedInformation.sendChangeRoleReceiver(players.get(snake.getKey()).getIpAddress(),players.get(snake.getKey()).getPort(),mainPlayer.getId(),players.get(snake.getKey()).getId(), SnakesProto.NodeRole.VIEWER);
                 }
                 field.spawnRandomFoods(snake.getValue().getBody());
                 iterator2.remove();
@@ -252,6 +288,8 @@ public class GameMaster implements GameUpdate
 
     public void setDeputy(Player player)
     {
+        System.out.println("I made "+player.getId()+" deputy");
+        players.get(player.getId()).setRole(SnakesProto.NodeRole.DEPUTY);
         deputyPlayer=player;
     }
 

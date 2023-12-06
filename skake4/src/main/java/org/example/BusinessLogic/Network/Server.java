@@ -1,5 +1,6 @@
 package org.example.BusinessLogic.Network;
 
+import jdk.swing.interop.SwingInterOpUtils;
 import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.*;
 import org.example.BusinessLogic.Network.Data.Adress;
@@ -18,10 +19,12 @@ public class Server implements Runnable
 {
     public Server(DataServer dataServer, Role role)
     {
+
+        //System.err.println("NEW SERVER!!!");
         this.role=role;
         this.dataServer = dataServer;
 
-        if (role==Role.NORMAL)
+        if (dataServer.getServerRole()== SnakesProto.NodeRole.NORMAL)
         {
             dataServer.setTypeRequest(TypeRequest.JOIN);
         }
@@ -53,6 +56,15 @@ public class Server implements Runnable
     {
         while (true)
         {
+//            if (dataServer.o<o)
+//            {
+//                System.err.println("CATASTROFA!!!");
+//            }
+//            else
+//            {
+//                System.err.println("server my o = "+dataServer.o);
+//            }
+
             sendData();
             receiveData();
             dataServer.deleteOfflineReceivers();
@@ -61,7 +73,7 @@ public class Server implements Runnable
 
     private void sendData()
     {
-        if (role==Role.MASTER) {
+        if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER) {
             sendMulticast();
         }
 
@@ -73,18 +85,27 @@ public class Server implements Runnable
             {
                 dataServer.setMaster(dataGameMessage.getIp(),dataGameMessage.getPort());
             }
+            else if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.ACK)
+            {
+                dataServer.deleteGameMessage(dataGameMessage.getIp(),dataGameMessage.getPort(),dataGameMessage.getGameMessage());
+            }
+
             try {
+                socketLock.lock();
                 byte[] message = dataGameMessage.getGameMessage().toByteArray();
 
                 InetAddress receiverAddress = InetAddress.getByName(dataGameMessage.getIp());
                 DatagramPacket packet = new DatagramPacket(message, message.length, receiverAddress, dataGameMessage.getPort());
 
-                socketLock.lock();
+
                 socket.send(packet);
 
-                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK) {
-                    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "}");
+                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+                ) {
+                    //System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq());
                 }
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -101,6 +122,7 @@ public class Server implements Runnable
         {
             try
             {
+                socketLock.lock();
                 //System.out.println("SEND");
 
                 InetAddress group = InetAddress.getByName(MULTICAST_GROUP);
@@ -110,7 +132,7 @@ public class Server implements Runnable
 
                 DatagramPacket packet = new DatagramPacket(message, message.length, group, MULTICAST_PORT);
 
-                socketLock.lock();
+
                 socket.send(packet);
                 dataServer.addMsgSeq();
 
@@ -152,7 +174,7 @@ public class Server implements Runnable
                     case JOIN -> processJoinMsg(packet,message);
                     case ACK -> processAckMsg(packet.getAddress().getHostAddress(), packet.getPort(), message);
                     case STATE -> processStateMsg(message);
-                    case STEER -> processSteerMsg(message,packet.getAddress().getHostAddress());
+                    case STEER -> processSteerMsg(message,packet.getAddress().getHostAddress(),packet.getPort());
                     case ERROR -> processErrorMsg(packet.getAddress().getHostAddress(), packet.getPort(), message);
                     case ROLE_CHANGE -> processRoleChangeMsg(packet.getAddress().getHostAddress(), packet.getPort(),message);
                 }
@@ -160,12 +182,35 @@ public class Server implements Runnable
                 if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.JOIN && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.DISCOVER &&
                         message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ANNOUNCEMENT)
                 {
-                    dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(),packet.getPort(),
-                            MessageBuilder.getAckMsg(message)));
+//                    if (message.getTypeCase()== SnakesProto.GameMessage.TypeCase.ERROR) {
+//                        System.out.println("[SERVER] send ack for {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq());
+//                    }
+
+                    try {
+                        if (dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getSenderId()>0) {
+                            dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
+                                            MessageBuilder.getAckMsg(dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getSenderId(),
+                                                    dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getReceiverId(),message.getMsgSeq())));
+                        }
+                        else {
+                            dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
+                                            MessageBuilder.getAckMsg(message)));
+                        }
+                    }
+                    catch (NullPointerException e)
+                    {
+                        dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
+                                MessageBuilder.getAckMsg(message)));
+                        //System.err.println("NOT SUCH RECEIVER!");
+                    }
+                    //dataServer.deleteGameMessage();
                 }
 
-                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK) {
-                    System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq());
+                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
+                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+                ) {
+                    //System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq());
                 }
 
                 dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
@@ -189,6 +234,7 @@ public class Server implements Runnable
     {
         if(message.getRoleChange().hasReceiverRole() && message.getRoleChange().getReceiverRole()== SnakesProto.NodeRole.DEPUTY)
         {
+            System.out.println("i have became deputy!");
             dataServer.setDeputy(true);
         }
         else if (message.getRoleChange().hasSenderRole() && message.getRoleChange().getSenderRole()== SnakesProto.NodeRole.VIEWER)
@@ -201,15 +247,20 @@ public class Server implements Runnable
         System.err.println(" (" + message.getError().getErrorMessage()+") FROM "+ip+" : "+port);
     }
 
-    private void processSteerMsg(SnakesProto.GameMessage gameMessage, String ip)
+    private void processSteerMsg(SnakesProto.GameMessage gameMessage, String ip,int port)
     {
-        dataServer.addChgPlDir(gameMessage,ip);
+        if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER) {
+            dataServer.addChgPlDir(gameMessage, ip,port);
+        }
     }
 
     private void processStateMsg(SnakesProto.GameMessage gameState)
     {
-        if (role!=Role.MASTER)
+        if (dataServer.getServerRole()!= SnakesProto.NodeRole.MASTER)
         {
+//            dataServer.o++;
+//            o=dataServer.o;
+//            System.out.println("server made "+dataServer.o);
             if (gameState.getMsgSeq()>msgSeqState) {
                 dataServer.setGameState(gameState.getState().getState());
                 msgSeqState=gameState.getMsgSeq();
@@ -219,6 +270,7 @@ public class Server implements Runnable
     private void processAckMsg(String ip,int port, SnakesProto.GameMessage message)
     {
         if (message.hasReceiverId()) {
+            //System.err.println("IM JOINING ACK");
             dataServer.setJoin(message);
         }
         dataServer.deleteGameMessage(ip,port,message);
@@ -226,7 +278,11 @@ public class Server implements Runnable
 
     private void processJoinMsg(DatagramPacket packet, SnakesProto.GameMessage message)
     {
-        if (role==Role.MASTER) {
+        if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER) {
+
+//            dataServer.o++;
+//            o=dataServer.o;
+//            System.out.println("add acc "+dataServer.o);
             dataServer.addAccededPlayers(new AccededPlayer(packet.getAddress().getHostAddress(), packet.getPort(),
                     message.getJoin().getPlayerName(),
                     message.getJoin().getPlayerType(),
@@ -267,4 +323,6 @@ public class Server implements Runnable
     private static final int MULTICAST_PORT=9192;
     private static final int LIMIT_MULTICAST=1000;
     private static final int SIZE_RECEIVE_DATA=1024;
+
+    int o=0;
 }

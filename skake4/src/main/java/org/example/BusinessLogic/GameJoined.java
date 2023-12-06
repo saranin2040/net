@@ -8,19 +8,16 @@ import java.util.*;
 
 public class GameJoined implements GameUpdate
 {
-    public GameJoined(String gameName)
-    {
-        this.gameName=gameName;
-    }
-
     public GameJoined(SnakesProto.GameState gameState, int playerId, DataGameAnnouncement dataGameAnnouncement)
     {
+        this.gameName=dataGameAnnouncement.getGameName();
         players= gameState.getPlayers().getPlayersList();
         snakes= gameState.getSnakesList();
         //foods= gameState.getFoodsList();
         stateOrder=gameState.getStateOrder();
+        delayMs=dataGameAnnouncement.getDelayMs();
 
-        field=new Field(dataGameAnnouncement.getWidth(),dataGameAnnouncement.getHeight(),dataGameAnnouncement.getCountFood());
+        field=new Field(dataGameAnnouncement.getWidth(),dataGameAnnouncement.getHeight(),dataGameAnnouncement.getCountFood(),"");
 
         for (SnakesProto.GamePlayer player:players)
         {
@@ -36,18 +33,18 @@ public class GameJoined implements GameUpdate
     {
         SnakesProto.GameState gameState=receiveNeedInformation.getGameState();
 
-        players= gameState.getPlayers().getPlayersList();
-        snakes= gameState.getSnakesList();
+        if (gameState!=null) {
+            players = gameState.getPlayers().getPlayersList();
+            snakes = gameState.getSnakesList();
 
-        field.setFood( parseFood (gameState.getFoodsList()));
-        stateOrder=gameState.getStateOrder();
+            field.setFood(parseFood(gameState.getFoodsList()));
+            stateOrder = gameState.getStateOrder();
 
-        for (SnakesProto.GamePlayer player:players)
-        {
-            if (player.getId()==mainPlayer.getId())
-            {
-                mainPlayer=new PlayerJoined(player);
-                break;
+            for (SnakesProto.GamePlayer player : players) {
+                if (player.getId() == mainPlayer.getId()) {
+                    mainPlayer = new PlayerJoined(player);
+                    break;
+                }
             }
         }
     }
@@ -105,6 +102,18 @@ public class GameJoined implements GameUpdate
         }
 
         return snakesReturn;
+    }
+
+    public ArrayList<Player> getPlayersRate()
+    {
+        ArrayList<Player> sortedPlayers=new ArrayList<>(getPlayers());
+
+        Comparator<Player> scoreComparator = Comparator.comparingInt(Player::getScore).reversed();
+
+        // Сортируем список
+        Collections.sort(sortedPlayers, scoreComparator);
+
+        return sortedPlayers;
     }
 
     public Player getMainPlayers()

@@ -35,7 +35,7 @@ public class PingSender implements Runnable
                 socketLock.lock();
                 socket.send(packet);
 
-                System.out.println("[PING] send {ip:" + adress.getIp() + " port: "+adress.getPort()+"}");
+                //System.out.println("[PING] send {ip:" + adress.getIp() + " port: "+adress.getPort()+"}");
 
             } catch (IOException e) {
                 e.printStackTrace();
