@@ -16,6 +16,7 @@ public class GameMaster implements GameUpdate
     {
         this.gameName=gameName;
         this.field=new Field(width,height,foods);
+        this.field.spawnFoods(new ArrayList<>());
         this.delayMs=delay;
         mainPlayer=new PlayerMaster(0, playerName, 1, SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
         players.put(1,mainPlayer);
@@ -29,6 +30,8 @@ public class GameMaster implements GameUpdate
         this.delayMs=delay;
         //mainPlayer=new PlayerMaster(player.getScore(), player.getName(), player.getId(), player.getIpAddress(), player.getPort(), SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
 
+        int idOldMaster=0;
+
         for (Player player1:players)
         {
             if (player1.getRole()== SnakesProto.NodeRole.DEPUTY)
@@ -39,10 +42,14 @@ public class GameMaster implements GameUpdate
             }
             else if (player1.getRole() == SnakesProto.NodeRole.MASTER)
             {
+
                 PlayerMaster playerMaster=new PlayerMaster(player1,player1.getId());
                 playerMaster.setRole(SnakesProto.NodeRole.VIEWER);
                 playerMaster.setIpAddress(adressM.getIp());
                 playerMaster.setPort(adressM.getPort());
+
+                idOldMaster=playerMaster.getId();
+
                 this.players.put(playerMaster.getId(),playerMaster);
             }
             else {
@@ -61,6 +68,14 @@ public class GameMaster implements GameUpdate
         for (Snake snake:snakes)
         {
             this.snakes.put(snake.getId(),new SnakeMaster(snake));
+            if (snake.getState()!= SnakesProto.GameState.Snake.SnakeState.ZOMBIE) {
+                this.players.get(snake.getId()).reallySetDirect(snake.getDirect());
+            }
+
+            if (snake.getId()==idOldMaster)
+            {
+                this.snakes.get(snake.getId()).setState(SnakesProto.GameState.Snake.SnakeState.ZOMBIE);
+            }
         }
     }
     public Field getField()
@@ -120,8 +135,14 @@ public class GameMaster implements GameUpdate
     public void update(ReceiveNeedInformation receiveNeedInformation)
     {
 
+        long o=Math.abs(System.currentTimeMillis()-time);
+        while (Math.abs(System.currentTimeMillis()-time)<delayMs)
+        {
 
-        if (Math.abs(System.currentTimeMillis()-time)>delayMs)
+        }
+
+       // if (Math.abs(System.currentTimeMillis()-time)>delayMs)
+//            if (o>delayMs)
         {
             changeRole(receiveNeedInformation);
             changePlayersDirection(receiveNeedInformation.getPlayersDirection());
@@ -352,7 +373,7 @@ public class GameMaster implements GameUpdate
     private int lastPlayerId=1;
 
     private long time =System.currentTimeMillis();
-    private int delayMs=700;
+    private int delayMs;
 
     private static final int FREE_SQUARE_SIZE = 5;
 }

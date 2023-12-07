@@ -83,12 +83,12 @@ public class Server extends Thread
 //                System.out.println("send through "+Math.abs(System.currentTimeMillis()-timeSend));
 //                timeSend=System.currentTimeMillis();
 
-//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
 //                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-//                ) {
+                ) {
                     System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeSend));
                 timeSend=System.currentTimeMillis();
-                //}
+                }
 
 
             } catch (IOException e) {
@@ -191,14 +191,14 @@ public class Server extends Thread
                     //dataServer.deleteGameMessage();
                 }
 
-//                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-//                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
+                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
 //                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-//                ) {
+                ) {
                     System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeReceive));
                    // System.out.println();
                     timeReceive=System.currentTimeMillis();
-               // }
+                }
 
                 dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
             }
@@ -213,7 +213,7 @@ public class Server extends Thread
             socketLock.unlock();
         }
     }
-    public void processRoleChangeMsg(String ip,int port,SnakesProto.GameMessage message)
+    private void processRoleChangeMsg(String ip,int port,SnakesProto.GameMessage message)
     {
         if(message.getRoleChange().hasReceiverRole() && message.getRoleChange().getReceiverRole()== SnakesProto.NodeRole.DEPUTY)
         {
@@ -225,7 +225,7 @@ public class Server extends Thread
             dataServer.setWantetViewer(new Adress(ip,port));
         }
     }
-    public void processErrorMsg(String ip,int port, SnakesProto.GameMessage message)
+    private void processErrorMsg(String ip,int port, SnakesProto.GameMessage message)
     {
         System.err.println(" (" + message.getError().getErrorMessage()+") FROM "+ip+" : "+port);
     }
@@ -274,7 +274,7 @@ public class Server extends Thread
         }
     }
 
-    public static NetworkInterface findNetworkInterface(String networkName) throws SocketException {
+    private static NetworkInterface findNetworkInterface(String networkName) throws SocketException {
         for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
             //System.out.println("Interface: " + iface.getDisplayName());
             if (iface.isUp() && !iface.isLoopback()) {

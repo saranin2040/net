@@ -121,16 +121,16 @@ public class MessageBuilder
             gamePlayers.addPlayers(getPlayer(players.get(i)));
         }
 
-        try {
+        //try {
 
             for (int i = 0; i < snakes.size(); i++) {
                 gameState.addSnakes(getSnake(snakes.get(i), snakes.get(i).getId(), game.getField().getWidth(), game.getField().getHeight()));
             }
-        }
-        catch (IndexOutOfBoundsException e)
-        {
-            e.printStackTrace();
-        }
+//        }
+//        catch (IndexOutOfBoundsException e)
+//        {
+//            e.printStackTrace();
+//        }
 
         gamePlayers.build();
 

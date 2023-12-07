@@ -158,6 +158,12 @@ public class PlayerMaster implements Player
         }
     }
 
+    public void reallySetDirect(SnakesProto.Direction direction)
+    {
+        this.predDirect=direction;
+        this.direct=direction;
+    }
+
     public int getScore()
     {
         return score;

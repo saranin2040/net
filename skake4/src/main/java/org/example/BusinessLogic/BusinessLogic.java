@@ -21,55 +21,16 @@ public class BusinessLogic
         startCheckGames();
     }
 
-    public synchronized void updateGame()
+    public void startGame()
     {
-        if (status==StatusGame.PLAY) {
-            // System.out.print("update");
-            if (game != null && network.isDataServer()) {
-
-                if ((game.getMainPlayer().getRole() == SnakesProto.NodeRole.DEPUTY || network.getDeputy()) && network.isOffline(network.getMasterAdress())) {
-                    becomeMaster();
-                }
-
-                //System.err.println("i see from update "+network.getSer());
-                game.update(network);
-
-                if (game instanceof GameMaster) {
-                    GameMaster gameMaster = (GameMaster) game;
-                    addPlayers();
-                    if ((gameMaster.getDeputyPlayer() == null ||
-                            network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
-                            && gameMaster.getPlayers().size() >= 2) {
-                        for (Player player : gameMaster.getPlayers()) {
-                            if (player.getRole() == SnakesProto.NodeRole.NORMAL) {
-                                network.sendToBeDeputy(player.getIpAddress(), player.getPort(),game.getMainPlayer().getId(),
-                                        player.getId());
-                                gameMaster.setDeputy(player);
-                                break;
-                            }
-                        }
-                    }
-                    gameMaster.deletePlayers(network.getOfflineReceivers());
-                    network.sendGameState(game);
-                }
-            }
+        while(true)
+        {
+            updateGame();
         }
-    }
-
-    public Game getGame()
-    {
-        return game;
-    }
-
-    public String getPlayerName()
-    {
-        return playerName;
     }
 
     public boolean joinToGame(String ip, String gameName)
     {
-        System.err.println("i see from join ");
-
         if (status!=StatusGame.JOINING)
         {
             restart();
@@ -79,10 +40,9 @@ public class BusinessLogic
 
                 if (game != null) {
                     status = StatusGame.PLAY;
-                    //System.out.println("i joined! " + network.getGameState().getPlayers().getPlayersCount());
                 }
             }
-            return false;
+            return true;
         }
         return false;
     }
@@ -107,10 +67,7 @@ public class BusinessLogic
         network.startMasterServer(game);
         status=StatusGame.PLAY;
     }
-    public ArrayList<DataGameAnnouncement> getListFoundGame()
-    {
-        return network.getFoundGames();
-    }
+
 
     public void updateMainPlayesDirect(SnakesProto.Direction direction)
     {
@@ -124,16 +81,33 @@ public class BusinessLogic
         }
     }
 
+    public Game getGame()
+    {
+        return game;
+    }
+    public String getPlayerName()
+    {
+        return playerName;
+    }
+    public StatusGame getStatus()
+    {
+        return status;
+    }
+    public ArrayList<DataGameAnnouncement> getListFoundGame()
+    {
+        return network.getFoundGames();
+    }
     public void setStatusBuilding()
     {
         status=StatusGame.BUILDING;
         game=null;
     }
 
-    public StatusGame getStatus()
+    public void setPlayerName(String playerName)
     {
-        return status;
+        this.playerName = playerName;
     }
+
     public void restart()
     {
         if (game != null) {
@@ -150,33 +124,19 @@ public class BusinessLogic
                     network.sendToDeputyThatMasterLeave(game);
                 }
             }
-            game=null;
-        }
-
-        status=StatusGame.NONE;
-        //network.exit();
-    }
-
-    public void exit()
-    {
-        if (game != null) {
-            if (game instanceof GameMaster) {
-                GameMaster gameMaster = (GameMaster) game;
-
-                if ((gameMaster.getDeputyPlayer() == null ||
-                        network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
-                        && gameMaster.getPlayers().size() >= 2)
-                {
-                    network.sendLastTryToMakeDeputy(gameMaster);
-                } else if ((gameMaster.getDeputyPlayer() != null &&
-                        !network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))) {
-                    network.sendToDeputyThatMasterLeave(game);
-                }
+            else if (game instanceof GameJoined)
+            {
+                network.sendChangeRoleSender(game.getMainPlayer().getId(),game.getMasterPlayer().getId());
             }
             game=null;
         }
 
         status=StatusGame.NONE;
+    }
+
+    public void exit()
+    {
+        restart();
         network.exit();
     }
     private void startCheckGames()
@@ -187,14 +147,13 @@ public class BusinessLogic
     {
         GameMaster gameMaster = (GameMaster) game;
 
-
         HashMap<Long,Player> accededPlayers=network.getAccededPlayers();
 
-        //System.out.println("i see from add player "+network.getSome());
-
-        if (accededPlayers!=null) {
+        if (accededPlayers!=null)
+        {
             System.out.println("WOW!");
-            for (long msgSeq : accededPlayers.keySet()) {
+            for (long msgSeq : accededPlayers.keySet())
+            {
                 Integer playerId = gameMaster.addPlayer(accededPlayers.get(msgSeq));
                 if (playerId != null) {
                     network.sendAckMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(),game.getMainPlayer().getId(), playerId,msgSeq);
@@ -205,10 +164,51 @@ public class BusinessLogic
         }
     }
 
-    public void setPlayerName(String playerName)
+    private void setDeputy(GameMaster gameMaster)
     {
-        this.playerName = playerName;
+        if ((gameMaster.getDeputyPlayer() == null ||
+                network.isOffline(new Adress(game.getDeputyPlayer().getIpAddress(), game.getDeputyPlayer().getPort())))
+                && gameMaster.getPlayers().size() >= 2)
+        {
+            for (Player player : gameMaster.getPlayers())
+            {
+                if (player.getRole() == SnakesProto.NodeRole.NORMAL)
+                {
+                    network.sendToBeDeputy(player.getIpAddress(), player.getPort(),game.getMainPlayer().getId(),
+                            player.getId());
+                    gameMaster.setDeputy(player);
+                    break;
+                }
+            }
+        }
     }
+
+    private synchronized void updateGame()
+    {
+        if (status==StatusGame.PLAY) {
+            long time=0;
+            if (game != null && network.isDataServer())
+            {
+                if ((game.getMainPlayer().getRole() == SnakesProto.NodeRole.DEPUTY || network.getDeputy()) && network.isOffline(network.getMasterAdress())) {
+                    becomeMaster();
+                }
+
+                game.update(network);
+
+
+                if (game instanceof GameMaster)
+                {
+                    GameMaster gameMaster = (GameMaster) game;
+                    gameMaster.deletePlayers(network.getOfflineReceivers());
+                    addPlayers();
+                    setDeputy(gameMaster);
+                    network.sendGameState(game);
+                }
+            }
+        }
+    }
+
+
 
 
     GameUpdate game=null;

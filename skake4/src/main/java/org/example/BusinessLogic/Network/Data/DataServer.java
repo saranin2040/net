@@ -117,6 +117,21 @@ public class DataServer
         }
     }
 
+    public SnakesProto.GameState reallyGetGameState()
+    {
+        try
+        {
+            SnakesProto.GameState gameState = futureGameState.get();
+            futureGameState = new CompletableFuture<>();
+
+            return gameState;
+        }
+        catch (InterruptedException | ExecutionException e)
+        {
+            return null;
+        }
+    }
+
     public SnakesProto.GameMessage isJoin()
     {
         try
@@ -167,7 +182,7 @@ public class DataServer
 
     public GameJoined getGame(int playerId, DataGameAnnouncement dataGameAnnouncement)
     {
-        SnakesProto.GameState gameState = getGameState();
+        SnakesProto.GameState gameState = reallyGetGameState();
         if (gameState==null)
         {
             return null;
@@ -179,7 +194,6 @@ public class DataServer
     {
         if (receivers.size()>0)
         {
-            //System.out.println("receivers not zero");
             Receiver receiver = receivers.poll();
 
             if (receiver != null) {
@@ -306,7 +320,7 @@ public class DataServer
     {
         for (Receiver receiver:receivers)
         {
-            if (receiver.getIp().equals(fromAdress.ip)&&receiver.getPort()==fromAdress.port)
+            if (receiver.getIp().equals(fromAdress.getIp())&&receiver.getPort()==fromAdress.getPort())
             {
                 receiver.redirection(toAdress);
             }
@@ -376,5 +390,5 @@ public class DataServer
     BlockingQueue<Adress> offlineReceivers = new LinkedBlockingQueue<>();
     List<Adress> wantedViewers = Collections.synchronizedList(new ArrayList<>());
 
-    public static int STATE_DELAY_MS=5000;
+    public int STATE_DELAY_MS=5000;
 }

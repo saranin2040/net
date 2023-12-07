@@ -21,7 +21,7 @@ public class GameJoined implements GameUpdate
         stateOrder=gameState.getStateOrder();
         delayMs=dataGameAnnouncement.getDelayMs();
 
-        field=new Field(dataGameAnnouncement.getWidth(),dataGameAnnouncement.getHeight(),dataGameAnnouncement.getCountFood(),"");
+        field=new Field(dataGameAnnouncement.getWidth(),dataGameAnnouncement.getHeight(),dataGameAnnouncement.getCountFood());
 
         for (SnakesProto.GamePlayer player:players)
         {
@@ -41,7 +41,7 @@ public class GameJoined implements GameUpdate
             players = gameState.getPlayers().getPlayersList();
             snakes = gameState.getSnakesList();
 
-            field.setFood(parseFood(gameState.getFoodsList()));
+            field.setFoods(parseFood(gameState.getFoodsList()));
             stateOrder = gameState.getStateOrder();
 
             for (SnakesProto.GamePlayer player : players) {
@@ -158,6 +158,6 @@ public class GameJoined implements GameUpdate
     protected List<SnakesProto.GameState.Snake> snakes=new ArrayList<>();
     //protected List<SnakesProto.GameState.Coord> foods=new ArrayList<>();
     private int stateOrder;
-    protected Field field=new Field(0,0,0);
+    protected Field field;
     protected int delayMs;
 }

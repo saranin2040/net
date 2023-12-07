@@ -38,6 +38,6 @@ public class Adress
     }
 
 
-    String ip;
-    int port;
+    private String ip;
+    private int port;
 }

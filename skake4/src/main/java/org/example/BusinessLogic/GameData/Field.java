@@ -9,14 +9,38 @@ public class Field
         this.width = width;
         this.height = height;
         this.maxFoods=maxFoods;
-        spawnFoods(new ArrayList<Coords>());
     }
-    Field (int width, int height,int maxFoods,String t)
+
+    public ArrayList<Coords> getFoods() {return new ArrayList<>(foods);}
+    public int getWidth()
     {
-        this.width = width;
-        this.height = height;
-        this.maxFoods=maxFoods;
+        return width;
     }
+    public int getHeight()
+    {
+        return height;
+    }
+    public int getMaxFoods() {
+        return maxFoods;
+    }
+
+    public void setFoods(ArrayList<Coords> coords)
+    {
+        foods.clear();
+        foods.addAll(coords);
+    }
+
+    public void spawnRandomFoods(ArrayList<Coords> coords)
+    {
+        for (Coords coord:coords)
+        {
+            if (random.nextBoolean())
+            {
+                foods.add(coord);
+            }
+        }
+    }
+
     public void spawnFoods(ArrayList<Coords> busysCoords)
     {
         if(foods.size()<maxFoods)
@@ -24,6 +48,19 @@ public class Field
             busysCoords.addAll(foods);
             List<Coords> shuffledCoords = generateShuffledCoords(width-1, height-1);
 
+//            Set<Coords> busyCoordsSet = new HashSet<>(busysCoords);
+//
+//            for (Coords coord : shuffledCoords) {
+//                if (!busyCoordsSet.contains(coord)) {
+//                    foods.add(coord);
+//                    //busyCoordsSet.add(coord);
+//
+//                    if (foods.size() >= maxFoods) {
+//                        break;
+//                    }
+//                }
+//            }
+//
             for (Coords coords : busysCoords) {
                 shuffledCoords.remove(coords);
             }
@@ -48,61 +85,26 @@ public class Field
     {
         foods.remove(coords);
     }
-    public ArrayList<Coords> getFoods()
-    {
-        return (ArrayList<Coords>)foods.clone();
-    }
 
-    public int getWidth()
-    {
-        return width;
-    }
-    public int getHeight()
-    {
-        return height;
-    }
 
-    private List<Coords> generateShuffledCoords(int maxX, int maxY) {
+    private List<Coords> generateShuffledCoords(int maxX, int maxY)
+    {
         List<Coords> allCoords = new ArrayList<>();
 
-        // Заполнение списка всеми возможными координатами
         for (int x = 0; x <= maxX; x++) {
             for (int y = 0; y <= maxY; y++) {
                 allCoords.add(new Coords(x, y));
             }
         }
 
-        // Перемешивание списка
         Collections.shuffle(allCoords);
 
         return allCoords;
     }
 
-    public int getMaxFoods() {
-        return maxFoods;
-    }
-
-
-    public void setFood(ArrayList<Coords> coords)
-    {
-        foods.clear();
-        foods.addAll(coords);
-    }
-
-    public void spawnRandomFoods(ArrayList<Coords> coords)
-    {
-        for (Coords coord:coords)
-        {
-            if (random.nextBoolean())
-            {
-                foods.add(coord);
-            }
-        }
-    }
-    private int width;
-    private int height;
-    private int maxFoods=10;
-    private ArrayList<Coords> foods=new ArrayList<Coords>();
-    private static final Random random = new Random();
-
+    private final int width;
+    private final int height;
+    private final int maxFoods;
+    private final ArrayList<Coords> foods=new ArrayList<Coords>();
+    private final Random random = new Random();
 }

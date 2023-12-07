@@ -124,7 +124,7 @@ public class DataGameAnnouncement
     private int delayMs;
 
     private int port;
-    String masterName;
+    private String masterName;
 
     private long timeMulticast=System.currentTimeMillis();
 

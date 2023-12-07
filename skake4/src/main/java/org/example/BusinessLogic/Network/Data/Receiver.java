@@ -49,8 +49,8 @@ public class Receiver
 
     public void redirection(Adress adress)
     {
-        this.ip=adress.ip;
-        this.port=adress.port;
+        this.ip=adress.getIp();
+        this.port=adress.getPort();
 
         for (DataGameMessage dataGameMessage:gameMessages)
         {
@@ -131,12 +131,12 @@ public class Receiver
             }
         }
 
-        long x=Math.abs(System.currentTimeMillis()-timeLastReceive);
-        if (x>STATE_DELAY_MS*0.8)
-        {
-            int y=0;
-            //System.err.println("check delete "+(x>STATE_DELAY_MS*0.8));
-        }
+//        long x=Math.abs(System.currentTimeMillis()-timeLastReceive);
+//        if (x>STATE_DELAY_MS*0.8)
+//        {
+//            int y=0;
+//            //System.err.println("check delete "+(x>STATE_DELAY_MS*0.8));
+//        }
 
 
        // System.out.println("check delete "+(x>STATE_DELAY_MS*0.8));

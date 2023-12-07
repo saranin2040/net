@@ -12,37 +12,12 @@ import java.util.*;
 
 public class Network implements ReceiveNeedInformation
 {
-    public Network()
+    public void startMulticastServer()
     {
-
+        multicastReceive=new MulticastReceive(dataMulticastServer);
+        multicastReceiveServer = new Thread(multicastReceive);
+        multicastReceiveServer.start();
     }
-
-    public boolean isDataServer()
-    {
-        return dataServer!=null;
-    }
-
-    public void exit()
-    {
-        if (server!=null)
-        {
-            System.out.println("oh?");
-            server.interrupt();
-            server=null;
-            dataServer = null;
-        }
-    }
-    public void setServerMaster(Game game)
-    {
-        dataServer.update(game);
-        dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
-                game.getField().getHeight(),
-                game.getField().getMaxFoods(),
-                game.getDelayMs()));
-
-        dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
-    }
-
     public void startMasterServer(Game game)
     {
         if (dataServer==null) {
@@ -91,25 +66,28 @@ public class Network implements ReceiveNeedInformation
             return dataServer.getGame(playerId,dataGameAnnouncement);
         }
         return null;
-        //dataServer.getCanJoin();
     }
 
-
-    public void startMulticastServer()
+    public void setServerMaster(Game game)
     {
-        multicastReceive=new MulticastReceive(dataMulticastServer);
-        multicastReceiveServer = new Thread(multicastReceive);
-        multicastReceiveServer.start();
+        dataServer.update(game);
+        dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
+                game.getField().getHeight(),
+                game.getField().getMaxFoods(),
+                game.getDelayMs()));
+
+        dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
     }
 
-    public ArrayList<DataGameAnnouncement> getFoundGames()
+    public void exit()
     {
-        return dataMulticastServer.getFoundGame();
-    }
-    public SnakesProto.GameState getGameState()
-    {
-
-        return dataServer.getGameState();
+        if (server!=null)
+        {
+            System.out.println("oh?");
+            server.interrupt();
+            server=null;
+            dataServer = null;
+        }
     }
 
     public void sendGameState(Game game)
@@ -123,30 +101,6 @@ public class Network implements ReceiveNeedInformation
                         player.getId());
             }
         }
-
-        //dataServer.update(game);
-        //dataServer.setGameMessage(MessageBuilder.getStateMsg(game,dataServer,dataServer.getMsgSeq()));
-        //dataServer.setTypeSend(SnakesProto.GameMessage.TypeCase.STATE);
-    }
-
-    public HashMap<Long,Player> getAccededPlayers()
-    {
-        ArrayList<AccededPlayer> accededPlayers = dataServer.getAccededPlayers();
-
-        if (accededPlayers!=null && accededPlayers.size()>0) {
-            HashMap<Long,Player> newPlayers = new HashMap<>();
-
-            for (AccededPlayer accededPlayer : accededPlayers) {
-                newPlayers.put(accededPlayer.msgSeq, new PlayerMaster(accededPlayer.ip,
-                        accededPlayer.port,
-                        accededPlayer.playerName,
-                        accededPlayer.role,
-                        accededPlayer.type));
-            }
-
-            return newPlayers;
-        }
-        return null;
     }
 
     public void sendDirection(Game game, SnakesProto.Direction direction)
@@ -169,34 +123,6 @@ public class Network implements ReceiveNeedInformation
         }
     }
 
-    public boolean isOffline(Adress adress)
-    {
-        return dataServer.isOffline(adress);
-    }
-
-    public HashMap<Adress, SnakesProto.GameMessage> getPlayersDirection()
-    {
-        if (dataServer!=null)
-        {
-            return dataServer.getChgPlDir();
-        }
-        return new HashMap<>();
-    }
-
-    public DataGameAnnouncement getAnForIp(String ip,String gameName)
-    {
-        ArrayList<DataGameAnnouncement> an=getFoundGames();
-
-        for(DataGameAnnouncement dataGameAnnouncement:an)
-        {
-            if (dataGameAnnouncement.equals(new DataGameAnnouncement(ip,gameName)))
-            {
-                return dataGameAnnouncement;
-            }
-        }
-        return null;
-    }
-
     public void sendAckMsg(String ip,int port,int senderId,int receiverId,long msgSeq)
     {
         dataServer.putGameMessagesAck(new DataGameMessage(ip,port,
@@ -208,19 +134,7 @@ public class Network implements ReceiveNeedInformation
         dataServer.putGameMessages(new DataGameMessage(ip,port,
                 MessageBuilder.getErrorMsg(error,msgSeq)));
     }
-    public  ArrayList<Adress> getWantedViewers()
-    {
-        if (dataServer==null)
-        {
-            return new ArrayList<>();
-        }
-        return dataServer.getWantetViewers();
-    }
 
-    public ArrayList<Adress> getOfflineReceivers()
-    {
-        return dataServer.getOfflineReceivers();
-    }
 
     public void sendToBeDeputy(String ip,int port, int senderId,int receiverId)
     {
@@ -230,9 +144,6 @@ public class Network implements ReceiveNeedInformation
 
     public void sendChangeMaster(GameMaster game)
     {
-
-
-
         for (Player player:game.getPlayers())
         {
             if (player.getRole()!= SnakesProto.NodeRole.MASTER) {
@@ -263,10 +174,10 @@ public class Network implements ReceiveNeedInformation
                 MessageBuilder.getChangeRoleReceiver(role,senderId,receiverId,dataServer.pollMsgSeq())));
     }
 
-    public void sendChangeRoleSender(String ip, int port, int senderId,int receiverId,SnakesProto.NodeRole role)
+    public void sendChangeRoleSender(int senderId,int receiverId)
     {
-        dataServer.putGameMessages(new DataGameMessage(ip,port,
-                MessageBuilder.getChangeRoleSender(role,senderId,receiverId,dataServer.pollMsgSeq())));
+        dataServer.putGameMessages(new DataGameMessage(getMasterAdress().getIp(), getMasterAdress().getPort(),
+                MessageBuilder.getChangeRoleSender(SnakesProto.NodeRole.VIEWER,senderId,receiverId,dataServer.pollMsgSeq())));
     }
 
     public void sendLastTryToMakeDeputy(GameMaster game)
@@ -296,15 +207,82 @@ public class Network implements ReceiveNeedInformation
     {
         return dataServer.getMaster();
     }
-
+    public boolean getDeputy()
+    {
+        return dataServer.getDeputy();
+    }
     public void setDeputy(boolean bool)
     {
         dataServer.setDeputy(bool);
     }
-
-    public boolean getDeputy()
+    public  ArrayList<Adress> getWantedViewers()
     {
-        return dataServer.getDeputy();
+        if (dataServer==null)
+        {
+            return new ArrayList<>();
+        }
+        return dataServer.getWantetViewers();
+    }
+
+    public ArrayList<Adress> getOfflineReceivers()
+    {
+        return dataServer.getOfflineReceivers();
+    }
+    public HashMap<Adress, SnakesProto.GameMessage> getPlayersDirection()
+    {
+        if (dataServer!=null)
+        {
+            return dataServer.getChgPlDir();
+        }
+        return new HashMap<>();
+    }
+    public HashMap<Long,Player> getAccededPlayers()
+    {
+        ArrayList<AccededPlayer> accededPlayers = dataServer.getAccededPlayers();
+
+        if (accededPlayers!=null && accededPlayers.size()>0) {
+            HashMap<Long,Player> newPlayers = new HashMap<>();
+
+            for (AccededPlayer accededPlayer : accededPlayers) {
+                newPlayers.put(accededPlayer.msgSeq, new PlayerMaster(accededPlayer.ip,
+                        accededPlayer.port,
+                        accededPlayer.playerName,
+                        accededPlayer.role,
+                        accededPlayer.type));
+            }
+
+            return newPlayers;
+        }
+        return null;
+    }
+    public ArrayList<DataGameAnnouncement> getFoundGames()
+    {
+        return dataMulticastServer.getFoundGame();
+    }
+    public SnakesProto.GameState getGameState()
+    {
+
+        return dataServer.getGameState();
+    }
+
+    public boolean isDataServer() {return dataServer!=null;}
+    public boolean isOffline(Adress adress)
+    {
+        return dataServer.isOffline(adress);
+    }
+
+    private DataGameAnnouncement getAnForIp(String ip,String gameName)
+    {
+        ArrayList<DataGameAnnouncement> an=getFoundGames();
+
+        for(DataGameAnnouncement dataGameAnnouncement:an)
+        {
+            if (dataGameAnnouncement.equals(new DataGameAnnouncement(ip,gameName)))
+            {
+                return dataGameAnnouncement;
+            }
+        }
+        return null;
     }
 
     Thread server=null;
