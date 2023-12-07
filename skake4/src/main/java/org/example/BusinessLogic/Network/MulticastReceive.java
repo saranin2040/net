@@ -16,17 +16,11 @@ public class MulticastReceive implements Runnable
     }
     public void run()
     {
-        while (true) {
-            receiveMulticast();
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-
-            }
-        }
+        receiveMulticast();
     }
 
-    public void receiveMulticast() {
+    public void receiveMulticast()
+    {
         try {
             // Создаем сокет для мультикаст-группы
             InetAddress group = InetAddress.getByName(MULTICAST_GROUP);

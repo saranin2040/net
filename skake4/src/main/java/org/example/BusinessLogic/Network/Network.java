@@ -20,11 +20,12 @@ public class Network implements ReceiveNeedInformation
 
     public void exit()
     {
-        if (server!=null) {
+        if (server!=null)
+        {
+            System.out.println("oh?");
             server.interrupt();
             server=null;
             dataServer = null;
-            serverWork=false;
         }
     }
     public void setServerMaster(Game game)
@@ -44,16 +45,17 @@ public class Network implements ReceiveNeedInformation
             dataServer = new DataServer(game);
         }
 
-            dataServer.update(game);
-            dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
-                    game.getField().getHeight(),
-                    game.getField().getMaxFoods(),
-                    game.getDelayMs()));
-            server = new Server(dataServer, Role.MASTER);
+        dataServer.update(game);
+        dataServer.setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
+                game.getField().getHeight(),
+                game.getField().getMaxFoods(),
+                game.getDelayMs()));
 
         dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
 
-        if (!serverWork) {
+        if (server==null)
+        {
+            server = new Server(dataServer);
             server.start();
             serverWork=true;
         }
@@ -69,25 +71,13 @@ public class Network implements ReceiveNeedInformation
         dataServer.putGameMessages(new DataGameMessage(ip,dataGameAnnouncement.getPort(),
                 MessageBuilder.getJoinMsg(gameName,playerName, SnakesProto.NodeRole.NORMAL,dataServer.pollMsgSeq())));
 
-
-//        dataServer.setIpJoinGame(ip);
-//        dataServer.setNameJoinGame(gameName);
-//        dataServer.setTypeRequest(TypeRequest.JOIN);
-//        dataServer.setPlayerName("player");
-//        dataServer.setPort(dataGameAnnouncement.getPort());
-//        dataServer.setRequestedRole(SnakesProto.NodeRole.NORMAL);
-
-        //dataServer.setPort(port);
-
         dataServer.setServerRole(SnakesProto.NodeRole.NORMAL);
 
-        if (!serverWork) {
-            server = new Server(dataServer, Role.NORMAL);
+        if (server==null)
+        {
+            server = new Server(dataServer);
             server.start();
-            serverWork=true;
-            System.err.println("bad");
         }
-
 
         SnakesProto.GameMessage ackMsg = dataServer.isJoin();
 
@@ -313,8 +303,8 @@ public class Network implements ReceiveNeedInformation
         return dataServer.getDeputy();
     }
 
-    Thread server;
-    DataServer dataServer;
+    Thread server=null;
+    DataServer dataServer=null;
     DataMulticastServer dataMulticastServer=new DataMulticastServer();
     Thread multicastReceiveServer;
     MulticastReceive multicastReceive;

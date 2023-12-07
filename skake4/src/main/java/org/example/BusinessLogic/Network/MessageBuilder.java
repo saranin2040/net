@@ -210,7 +210,7 @@ public class MessageBuilder
 
     static private SnakesProto.GameConfig getGameConfig(DataServer dataServer)
     {
-        DataGameConfig dataGameConfig=dataServer.getDataGameConfig(Protect.READ);
+        DataGameConfig dataGameConfig=dataServer.getDataGameConfig();
         return SnakesProto.GameConfig.newBuilder()
                 .setWidth(dataGameConfig.width)
                 .setHeight(dataGameConfig.height)
@@ -223,7 +223,7 @@ public class MessageBuilder
     {
         SnakesProto.GamePlayers.Builder gamePlayers=SnakesProto.GamePlayers.newBuilder();
 
-        List<Player> players=dataServer.getPlayers(Protect.READ);
+        List<Player> players=dataServer.getPlayers();
         int n=players.size();
         for (int i=0;i<n;i++)
         {

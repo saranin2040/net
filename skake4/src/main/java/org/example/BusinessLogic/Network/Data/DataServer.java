@@ -3,7 +3,6 @@ package org.example.BusinessLogic.Network.Data;
 import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.*;
 import org.example.BusinessLogic.Network.AccededPlayer;
-import org.example.BusinessLogic.Network.Protect;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -31,27 +30,19 @@ public class DataServer
     }
     public synchronized HashMap<Adress, SnakesProto.GameMessage> getChgPlDir()
     {
-        HashMap<Adress, SnakesProto.GameMessage> ret=(HashMap<Adress, SnakesProto.GameMessage>)changedPlayerDirection.clone();
+        HashMap<Adress, SnakesProto.GameMessage> ret= new HashMap<>(changedPlayerDirection);
         changedPlayerDirection.clear();
         return ret;
     }
     public synchronized void addChgPlDir(SnakesProto.GameMessage gameMessage, String ip,int port)
     {
-        if ( !changedPlayerDirection.containsKey(gameMessage.getSenderId())
-                || changedPlayerDirection.containsKey(gameMessage.getSenderId())
-                && changedPlayerDirection.get(gameMessage.getSenderId()).getMsgSeq()<gameMessage.getMsgSeq()) {
+        if ( !changedPlayerDirection.containsKey(new Adress(ip,port))
+                || changedPlayerDirection.containsKey(new Adress(ip,port))
+                && changedPlayerDirection.get(new Adress(ip,port)).getMsgSeq()<gameMessage.getMsgSeq()) {
             changedPlayerDirection.put(new Adress(ip,port), gameMessage);
         }
     }
-    public synchronized void setPermitSendState(boolean bool)
-    {
-        permitSendState=bool;
-    }
-    public synchronized boolean getPermitSendState()
-    {
-        return permitSendState;
-    }
-    public List<Player> getPlayers(Protect protect)
+    public List<Player> getPlayers()
     {
 //        if (protect.equals(Protect.READ))
 //        {
@@ -80,7 +71,7 @@ public class DataServer
         this.dataGameConfig=dataGameConfig;
     }
 
-    public synchronized DataGameConfig getDataGameConfig(Protect protect)
+    public synchronized DataGameConfig getDataGameConfig()
     {
 //        if (protect.equals(Protect.READ)) {
 //                return dataGameConfig.cloneSelf();
@@ -95,33 +86,6 @@ public class DataServer
         return true; //TODO как понимать можно ли присоединиться?
     }
 
-    public synchronized boolean getNeedSend()
-    {
-        return needSend;
-    }
-
-    public synchronized void setNeedSend(boolean needSend)
-    {
-        this.needSend=needSend;
-    }
-
-    // Геттер и сеттер для ipJoinGame
-    public String getIpJoinGame() {
-        return ipJoinGame;
-    }
-
-    public void setIpJoinGame(String ipJoinGame) {
-        this.ipJoinGame = ipJoinGame;
-    }
-
-    // Геттер и сеттер для nameJoinGame
-    public String getNameJoinGame() {
-        return nameJoinGame;
-    }
-
-    public void setNameJoinGame(String nameJoinGame) {
-        this.nameJoinGame = nameJoinGame;
-    }
 
     public void update(Game game)
     {
@@ -168,38 +132,6 @@ public class DataServer
         futureCanJoin.complete(message);
     }
 
-    public  String getPlayerName() {
-        return playerName;
-    }
-
-    public synchronized void setPlayerName(String playerName) {
-        this.playerName = playerName;
-    }
-
-    // Геттер и сеттер для role
-    public SnakesProto.NodeRole getRequestedRole() {
-        return requestedRole;
-    }
-
-    public synchronized void setRequestedRole(SnakesProto.NodeRole role) {
-        this.requestedRole = role;
-    }
-
-    public synchronized SnakesProto.GameMessage.TypeCase getTypeSend() {
-        return typeSend;
-    }
-
-    public synchronized void setTypeSend(SnakesProto.GameMessage.TypeCase typeSend) {
-        this.typeSend = typeSend;
-    }
-
-    public synchronized SnakesProto.GameMessage getGameMessage() {
-        return gameMessage;
-    }
-
-    public synchronized void setGameMessage(SnakesProto.GameMessage gameMessage) {
-        this.gameMessage = gameMessage;
-    }
 
     public synchronized long getMsgSeq()
     {
@@ -221,7 +153,6 @@ public class DataServer
         if (accededPlayers.size()>0) {
             ArrayList<AccededPlayer> temp = new ArrayList<>(accededPlayers);
             accededPlayers.clear();
-            setIsNewPlayers(false);
             return temp;
         }
         return null;
@@ -232,16 +163,6 @@ public class DataServer
         accededPlayers.add(accededPlayer);
     }
 
-    public synchronized boolean isNewPlayers() {
-        return isNewPlayers;
-    }
-
-    // Сеттер для isNewPlayers
-    public synchronized void setIsNewPlayers(boolean isNewPlayers) {
-        this.isNewPlayers = isNewPlayers;
-    }
-
-
     public GameJoined getGame(int playerId,DataGameAnnouncement dataGameAnnouncement)
     {
         SnakesProto.GameState gameState = getGameState();
@@ -250,15 +171,6 @@ public class DataServer
             return null;
         }
         return new GameJoined(gameState,playerId,dataGameAnnouncement);
-    }
-    public SnakesProto.Direction getDirection()
-    {
-        return direction;
-    }
-
-    public void setDirection(SnakesProto.Direction direction)
-    {
-        this.direction=direction;
     }
 
     public void setPort(int port)
@@ -395,7 +307,7 @@ public class DataServer
 
     public ArrayList<Adress> getWantetViewers()
     {
-        return new ArrayList<Adress> (wantedViewers);
+        return new ArrayList<> (wantedViewers);
     }
 
     public void redirection(Adress fromAdress,Adress toAdress)
@@ -454,30 +366,14 @@ public class DataServer
 
     private SnakesProto.NodeRole serverRole= SnakesProto.NodeRole.NORMAL;
 
-    private HashMap<Adress, SnakesProto.GameMessage> changedPlayerDirection=new HashMap<>();
-    private boolean permitSendState=false;
+    private final HashMap<Adress, SnakesProto.GameMessage> changedPlayerDirection=new HashMap<>();
 
-    private List<Player> players = Collections.synchronizedList(new ArrayList<Player>());
-    private boolean needSend=false;
-    private SnakesProto.GameMessage.TypeCase typeSend=null;
-    private SnakesProto.GameMessage gameMessage=null;
-
-    //private SnakesProto.GameState gameState=null;
-
-    private String ipJoinGame;
-    private String nameJoinGame;
-    private String playerName=".";
-    private SnakesProto.NodeRole requestedRole=null;
-    private SnakesProto.Direction direction= SnakesProto.Direction.RIGHT;
+    private List<Player> players = Collections.synchronizedList(new ArrayList<>());
 
     private int msgSeq=0;
 
-    private ArrayList<AccededPlayer> accededPlayers=new ArrayList<>();
+    private final ArrayList<AccededPlayer> accededPlayers=new ArrayList<>();
 
-
-    //private boolean join=false;
-
-    private boolean isNewPlayers;
     int port=0;
 
     private boolean deputy=false;
@@ -490,5 +386,5 @@ public class DataServer
     BlockingQueue<Adress> offlineReceivers = new LinkedBlockingQueue<>();
     List<Adress> wantedViewers = Collections.synchronizedList(new ArrayList<>());
 
-    private static int STATE_DELAY_MS=5000;
+    public static int STATE_DELAY_MS=5000;
 }

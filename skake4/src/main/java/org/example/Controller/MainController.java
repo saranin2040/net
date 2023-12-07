@@ -1,8 +1,6 @@
 package org.example.Controller;
 
-import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.BusinessLogic;
-import org.example.BusinessLogic.Direct;
 import org.example.BusinessLogic.GameMaster;
 import org.example.BusinessLogic.Menu;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
@@ -40,7 +38,7 @@ public class MainController {
 //            int delay = scanInt();
 
             //bc.createNewGame(name,playerName,width,height,foods,delay);
-            bc.createNewGame("Nemo",10,10,10,100);
+            bc.createNewGame("Nemo",10,10,10,1000);
         }
         else {
             while(true)

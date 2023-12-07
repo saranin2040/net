@@ -7,9 +7,6 @@ import org.example.BusinessLogic.Network.Network;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class BusinessLogic
 {
@@ -195,7 +192,7 @@ public class BusinessLogic
             for (long msgSeq : accededPlayers.keySet()) {
                 Integer playerId = gameMaster.addPlayer(accededPlayers.get(msgSeq));
                 if (playerId != null) {
-                    network.sendAckMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(),game.getMainPlayer().getId(), playerId.intValue(),msgSeq);
+                    network.sendAckMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(),game.getMainPlayer().getId(), playerId,msgSeq);
                 } else {
                     network.sendErrorMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(), msgSeq,"You can't join");
                 }
@@ -214,6 +211,6 @@ public class BusinessLogic
 
     private String playerName="saranin2040";
 
-    private Network network;
+    private final Network network;
     private StatusGame status=StatusGame.NONE;
 }

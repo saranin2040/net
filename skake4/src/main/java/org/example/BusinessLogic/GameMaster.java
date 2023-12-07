@@ -115,18 +115,18 @@ public class GameMaster implements GameUpdate
 
     public void update(ReceiveNeedInformation receiveNeedInformation)
     {
-        while (Math.abs(System.currentTimeMillis()-time)<delayMs) {
 
+
+        if (Math.abs(System.currentTimeMillis()-time)>delayMs)
+        {
+            changeRole(receiveNeedInformation);
+            changePlayersDirection(receiveNeedInformation.getPlayersDirection());
+
+            moveSnakes();
+            checkCollitions(receiveNeedInformation);
+
+            time=System.currentTimeMillis();
         }
-
-        changeRole(receiveNeedInformation);
-
-        changePlayersDirection(receiveNeedInformation.getPlayersDirection());
-        moveSnakes();
-        checkCollitions(receiveNeedInformation);
-
-        time=System.currentTimeMillis();
-
     }
 
     public void changeRole(ReceiveNeedInformation receiveNeedInformation)

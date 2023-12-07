@@ -1,9 +1,7 @@
 package org.example.BusinessLogic.Network;
 
 import org.example.BusinessLogic.Network.Data.Adress;
-import org.example.BusinessLogic.Network.Data.DataGameMessage;
 import org.example.BusinessLogic.Network.Data.DataServer;
-import org.example.BusinessLogic.Network.Data.DataTimeSend;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -14,11 +12,10 @@ import java.util.concurrent.locks.Lock;
 
 public class PingSender extends Thread
 {
-    public PingSender(MulticastSocket socket, Lock sockeLock, DataTimeSend dataTimeSend,DataServer dataServer)
+    public PingSender(MulticastSocket socket, Lock sockeLock,DataServer dataServer)
     {
         this.socket=socket;
         this.socketLock=sockeLock;
-        this.dataTimeSend=dataTimeSend;
         this.dataServer=dataServer;
     }
     public void run()
@@ -49,9 +46,7 @@ public class PingSender extends Thread
     }
 
 
-    private long timeMulticast=System.currentTimeMillis();
-    private MulticastSocket socket;
-    private Lock socketLock;
-    private DataTimeSend dataTimeSend;
-    private DataServer dataServer;
+    private final MulticastSocket socket;
+    private final Lock socketLock;
+    private final DataServer dataServer;
 }

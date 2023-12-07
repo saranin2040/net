@@ -2,6 +2,8 @@ package org.example.BusinessLogic.Network.Data;
 
 import org.example.BusinessLogic.Coords;
 
+import java.util.Objects;
+
 public class Adress
 {
     public Adress(String ip, int port)
@@ -18,6 +20,11 @@ public class Adress
     public int getPort()
     {
         return port;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ip, port);
     }
 
     @Override

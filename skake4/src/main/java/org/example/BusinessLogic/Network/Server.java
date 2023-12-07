@@ -1,27 +1,23 @@
 package org.example.BusinessLogic.Network;
 
-import jdk.swing.interop.SwingInterOpUtils;
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.*;
 import org.example.BusinessLogic.Network.Data.Adress;
 import org.example.BusinessLogic.Network.Data.DataGameMessage;
 import org.example.BusinessLogic.Network.Data.DataServer;
-import org.example.BusinessLogic.Network.Data.DataTimeSend;
 
 import java.io.IOException;
 import java.net.*;
-import java.nio.channels.*;
 import java.util.Collections;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Server extends Thread
 {
-    public Server(DataServer dataServer, Role role)
+    public Server(DataServer dataServer)
     {
-
-        this.role=role;
         this.dataServer = dataServer;
+
+
 
         try {
             socket = new MulticastSocket();
@@ -36,14 +32,13 @@ public class Server extends Thread
             socket.setNetworkInterface(networkInterface);
 
             socketLock= new ReentrantLock();
-            pingSender=new PingSender(socket,socketLock,dataTimeSend,dataServer);
+            pingSender=new PingSender(socket,socketLock,dataServer);
             pingSender.start();
         }
         catch (IOException e)
         {
             e.printStackTrace();
         }
-
     }
 
     public void run()
@@ -211,10 +206,6 @@ public class Server extends Thread
             {
                 //System.out.println("No data received within the timeout period. Continue with the code.");
             }
-
-        }
-        catch (SocketException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -299,24 +290,19 @@ public class Server extends Thread
         return null;
     }
 
-    MulticastSocket socket;
+    private MulticastSocket socket;
+    private Lock socketLock;
+    private final DataServer dataServer;
+    private Thread pingSender;
 
     private long msgSeqState=-1;
 
     private long timeMulticast=System.currentTimeMillis();
     private long timeSend=System.currentTimeMillis();
     private long timeReceive=System.currentTimeMillis();
-    private Role role;
-    private DataServer dataServer;
-    private DataTimeSend dataTimeSend=new DataTimeSend();
-    private Thread pingSender;
-
-    private Lock socketLock;
 
     private static final String MULTICAST_GROUP="239.192.0.4";
     private static final int MULTICAST_PORT=9192;
     private static final int LIMIT_MULTICAST=1000;
     private static final int SIZE_RECEIVE_DATA=1024;
-
-    int o=0;
 }
