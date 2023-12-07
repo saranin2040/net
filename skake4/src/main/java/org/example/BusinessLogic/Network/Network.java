@@ -14,8 +14,7 @@ public class Network implements ReceiveNeedInformation
 {
     public void startMulticastServer()
     {
-        multicastReceive=new MulticastReceive(dataMulticastServer);
-        multicastReceiveServer = new Thread(multicastReceive);
+        multicastReceiveServer = new Thread(new MulticastReceive(dataMulticastServer));
         multicastReceiveServer.start();
     }
     public void startMasterServer(Game game)
@@ -34,7 +33,7 @@ public class Network implements ReceiveNeedInformation
 
         if (server==null)
         {
-            server = new Server(dataServer);
+            server = new Thread(new Server(dataServer));
             server.start();
             serverWork=true;
         }
@@ -54,7 +53,7 @@ public class Network implements ReceiveNeedInformation
 
         if (server==null)
         {
-            server = new Server(dataServer);
+            server = new Thread(new Server(dataServer));
             server.start();
         }
 
@@ -152,7 +151,7 @@ public class Network implements ReceiveNeedInformation
                     SnakesProto.GameMessage gameMessageDep = MessageBuilder.getChangeRoleSendRec(SnakesProto.NodeRole.MASTER
                             ,SnakesProto.NodeRole.DEPUTY,game.getMainPlayer().getId(),
                             player.getId()
-                            ,dataServer.getMsgSeq());
+                            ,dataServer.pollMsgSeq());
 
                     dataServer.putGameMessages(new DataGameMessage(player.getIpAddress(), player.getPort(), gameMessageDep));
                     game.setDeputy(player);
@@ -289,7 +288,6 @@ public class Network implements ReceiveNeedInformation
     DataServer dataServer=null;
     DataMulticastServer dataMulticastServer=new DataMulticastServer();
     Thread multicastReceiveServer;
-    MulticastReceive multicastReceive;
 
     boolean serverWork=false;
 }

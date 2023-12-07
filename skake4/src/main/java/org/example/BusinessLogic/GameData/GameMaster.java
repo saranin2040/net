@@ -23,16 +23,15 @@ public class GameMaster implements GameUpdate
         snakes.put(1,new SnakeMaster(1,getFreeCoords()));
     }
 
-    public GameMaster(String gameName, Player player, int width, int height, int foods, int delay, ArrayList<Player> players , ArrayList<Snake> snakes, Adress adressM, Game game)
+    public GameMaster(Game game, Adress adressM)
     {
-        this.gameName=gameName;
+        this.gameName=game.getGameName();
         this.field=game.getField();
-        this.delayMs=delay;
-        //mainPlayer=new PlayerMaster(player.getScore(), player.getName(), player.getId(), player.getIpAddress(), player.getPort(), SnakesProto.NodeRole.MASTER, SnakesProto.PlayerType.HUMAN);
+        this.delayMs=game.getDelayMs();
 
         int idOldMaster=0;
 
-        for (Player player1:players)
+        for (Player player1:game.getPlayers())
         {
             if (player1.getRole()== SnakesProto.NodeRole.DEPUTY)
             {
@@ -65,7 +64,7 @@ public class GameMaster implements GameUpdate
 
         this.players.put(mainPlayer.getId(),mainPlayer);
 
-        for (Snake snake:snakes)
+        for (Snake snake:game.getSnakes())
         {
             this.snakes.put(snake.getId(),new SnakeMaster(snake));
             if (snake.getState()!= SnakesProto.GameState.Snake.SnakeState.ZOMBIE) {

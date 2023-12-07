@@ -30,11 +30,6 @@ public class MessageBuilder
         return SnakesProto.GameMessage.newBuilder().setSteer(getSteerMsg(direction)).setSenderId(idSender).setMsgSeq(msgSeq).build();
     }
 
-    static public SnakesProto.GameMessage.SteerMsg getSteerMsg(SnakesProto.Direction direction)
-    {
-        return SnakesProto.GameMessage.SteerMsg.newBuilder().setDirection(direction).build();
-    }
-
     static public SnakesProto.GameMessage getChangeRoleSender(SnakesProto.NodeRole role, int senderId,int receiverId, long msgSeq)
     {
         return SnakesProto.GameMessage.newBuilder().setRoleChange(SnakesProto.GameMessage.RoleChangeMsg
@@ -82,17 +77,22 @@ public class MessageBuilder
         return SnakesProto.GameMessage.newBuilder().setError(getErrorMsg(error)).setMsgSeq(msgSeq).build();
     }
 
-    static public SnakesProto.GameMessage.ErrorMsg getErrorMsg(String error)
-    {
-        return SnakesProto.GameMessage.ErrorMsg.newBuilder().setErrorMessage(error).build();
-    }
-
     static public SnakesProto.GameMessage getStateMsg(Game game, long msgSeq)
     {
         return SnakesProto.GameMessage.newBuilder()
                 .setState(
                         getStateMsg(game)).setMsgSeq(msgSeq)
                 .build();
+    }
+
+    static private SnakesProto.GameMessage.SteerMsg getSteerMsg(SnakesProto.Direction direction)
+    {
+        return SnakesProto.GameMessage.SteerMsg.newBuilder().setDirection(direction).build();
+    }
+
+    static private SnakesProto.GameMessage.ErrorMsg getErrorMsg(String error)
+    {
+        return SnakesProto.GameMessage.ErrorMsg.newBuilder().setErrorMessage(error).build();
     }
 
     static private SnakesProto.GameMessage.StateMsg getStateMsg(Game game)
@@ -139,18 +139,6 @@ public class MessageBuilder
         return gameState.build();
     }
 
-    static private SnakesProto.GamePlayers getPlayers_(GameMaster game)
-    {
-        SnakesProto.GamePlayers.Builder gamePlayers=SnakesProto.GamePlayers.newBuilder();
-
-        ArrayList<Player> players=game.getPlayers();
-        for (int i=0;i<players.size();i++)
-        {
-            gamePlayers.addPlayers(getPlayer(players.get(i)));
-        }
-
-        return gamePlayers.build();
-    }
 
     static private SnakesProto.GameState.Snake getSnake(Snake snake,int id,int width,int height)
     {
@@ -166,8 +154,6 @@ public class MessageBuilder
         {
             snakeBuilder.addPoints(getCoord(coord.x,coord.y));
         }
-
-        //snakeBuilder.addPoints(getCoord(snake.getBody().get(snake.getBody().size()-1).x,snake.getBody().get(snake.getBody().size()-1).y));
 
         switch (snake.getDirect())
         {
@@ -265,11 +251,8 @@ public class MessageBuilder
     private static ArrayList<Coords> getOffsets(ArrayList<Coords> body,int width,int height) {
         ArrayList<Coords> offsets = new ArrayList<>();
 
-
         offsets.add(body.get(body.size()-1));
 
-
-        int help=body.size()-1;
         int offsetX = 0;
         int offsetY = 0;
         int xh2 = body.get(body.size()-2).x - body.get(body.size()-1).x;
@@ -287,7 +270,6 @@ public class MessageBuilder
             else if (xh2==-1 || xh2==width-1) {
                 offsetX--;
             }
-            //offsetX=body.get(body.size()-2).x - body.get(help).x;
         }
         else if (yh2!=0)
         {
@@ -298,7 +280,6 @@ public class MessageBuilder
             else if (yh2==-1 || yh2==height-1) {
                 offsetY--;
             }
-            //offsetY=body.get(body.size()-2).y - body.get(help).y;
         }
 
         for (int i = body.size()-2; i >= 1; i--)
@@ -312,7 +293,6 @@ public class MessageBuilder
                 {
                     g=true;
                     offsets.add(new Coords(0,offsetY));
-                    help=i+1;
                     offsetY=0;
                 }
 
@@ -322,8 +302,6 @@ public class MessageBuilder
                 else if (xh==-1 || xh==width-1) {
                     offsetX--;
                 }
-
-                //offsetX=(body.get(i-1).x - body.get(help).x)%width;
             }
             else if (yh!=0)
             {
@@ -331,7 +309,6 @@ public class MessageBuilder
                 {
                     g=false;
                     offsets.add(new Coords(offsetX,0));
-                    help=i+1;
                     offsetX=0;
                 }
 
@@ -341,17 +318,10 @@ public class MessageBuilder
                 else if (yh==-1 || yh==height-1) {
                     offsetY--;
                 }
-                //offsetY=(body.get(i-1).y - body.get(help).y)%height;
             }
         }
 
         offsets.add(new Coords(offsetX,offsetY));
-
-        for (Coords coords:offsets)
-        {
-            if (coords.x==0 && coords.y==0)
-            System.err.print("AAAAAAAAAAAAAAAAAAA");
-        }
 
         return offsets;
     }

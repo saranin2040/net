@@ -51,8 +51,7 @@ public class BusinessLogic
     {
         network.setDeputy(false);
 
-        game=new GameMaster(game.getGameName(),game.getMainPlayer(),game.getField().getWidth(),game.getField().getHeight(),
-                game.getField().getMaxFoods(),game.getDelayMs(),game.getPlayers(),game.getSnakes(),network.getMasterAdress(),game);
+        game=new GameMaster(game,network.getMasterAdress());
 
         network.sendChangeMaster((GameMaster) game);
         network.setServerMaster(game);
@@ -185,8 +184,8 @@ public class BusinessLogic
 
     private synchronized void updateGame()
     {
-        if (status==StatusGame.PLAY) {
-            long time=0;
+        if (status==StatusGame.PLAY)
+        {
             if (game != null && network.isDataServer())
             {
                 if ((game.getMainPlayer().getRole() == SnakesProto.NodeRole.DEPUTY || network.getDeputy()) && network.isOffline(network.getMasterAdress())) {

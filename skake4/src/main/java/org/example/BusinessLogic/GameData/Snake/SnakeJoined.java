@@ -44,7 +44,6 @@ public class SnakeJoined implements Snake
 
         for (int i=1;i<newBody.size();i++)
         {
-
             int xm=coords.get(coords.size()-1).x;
             int ym=coords.get(coords.size()-1).y;
 
@@ -72,11 +71,6 @@ public class SnakeJoined implements Snake
         Collections.reverse(coords);
 
         body.addAll(coords);
-
-//        for (int i=newBody.size()-1;i>=0;i--)
-//        {
-//            body.add(new Coords(newBody.get(i).getX(),newBody.get(i).getY()));
-//        }
 
         return body;
     }

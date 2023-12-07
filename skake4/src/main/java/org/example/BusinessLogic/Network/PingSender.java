@@ -10,7 +10,7 @@ import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 
-public class PingSender extends Thread
+public class PingSender implements Runnable
 {
     public PingSender(MulticastSocket socket, Lock sockeLock,DataServer dataServer)
     {

@@ -1,9 +1,11 @@
 package org.example.BusinessLogic.Network;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.Network.Data.Adress;
 import org.example.BusinessLogic.Network.Data.DataGameMessage;
 import org.example.BusinessLogic.Network.Data.DataServer;
+import org.example.BusinessLogic.Network.Data.Receiver;
 
 import java.io.IOException;
 import java.net.*;
@@ -11,7 +13,7 @@ import java.util.Collections;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Server extends Thread
+public class Server implements Runnable
 {
     public Server(DataServer dataServer)
     {
@@ -32,7 +34,7 @@ public class Server extends Thread
             socket.setNetworkInterface(networkInterface);
 
             socketLock= new ReentrantLock();
-            pingSender=new PingSender(socket,socketLock,dataServer);
+            pingSender=new Thread(new PingSender(socket,socketLock,dataServer));
             pingSender.start();
         }
         catch (IOException e)
@@ -60,41 +62,21 @@ public class Server extends Thread
 
         DataGameMessage dataGameMessage=dataServer.pollGameMessage();
 
+        if (dataGameMessage!=null)
+        {
+            checkToDo(dataGameMessage);
 
-        if (dataGameMessage!=null) {
-            if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.JOIN)
+            socketLock.lock();
+            try
             {
-                dataServer.setMaster(dataGameMessage.getIp(),dataGameMessage.getPort());
-            }
-            else if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.ACK)
-            {
-                dataServer.deleteGameMessage(dataGameMessage.getIp(),dataGameMessage.getPort(),dataGameMessage.getGameMessage());
-            }
-
-            try {
-                socketLock.lock();
-                byte[] message = dataGameMessage.getGameMessage().toByteArray();
-
-                InetAddress receiverAddress = InetAddress.getByName(dataGameMessage.getIp());
-                DatagramPacket packet = new DatagramPacket(message, message.length, receiverAddress, dataGameMessage.getPort());
-
-
+                DatagramPacket packet=createPacket(dataGameMessage);
                 socket.send(packet);
-//                System.out.println("send through "+Math.abs(System.currentTimeMillis()-timeSend));
-//                timeSend=System.currentTimeMillis();
-
-                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-//                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-                ) {
-                    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeSend));
-                timeSend=System.currentTimeMillis();
-                }
-
-
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
-            finally {
+            finally
+            {
                 socketLock.unlock();
             }
         }
@@ -104,29 +86,19 @@ public class Server extends Thread
     {
         if (Math.abs(System.currentTimeMillis()-timeMulticast)>=LIMIT_MULTICAST)
         {
+            socketLock.lock();
             try
             {
-                socketLock.lock();
-                //System.out.println("SEND");
-
-                InetAddress group = InetAddress.getByName(MULTICAST_GROUP);
-
-                SnakesProto.GameMessage gameMessage = MessageBuilder.getAnnouncementMsg(dataServer, dataServer.getMsgSeq());
-                byte[] message = gameMessage.toByteArray();
-
-                DatagramPacket packet = new DatagramPacket(message, message.length, group, MULTICAST_PORT);
-
-
+                DatagramPacket packet =createMulticastPacket();
                 socket.send(packet);
-                dataServer.addMsgSeq();
-
-                timeMulticast=System.currentTimeMillis();
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
-            finally {
+            finally
+            {
                 socketLock.unlock();
+                timeMulticast=System.currentTimeMillis();
             }
         }
     }
@@ -139,68 +111,17 @@ public class Server extends Thread
             socket.setSoTimeout(1);
 
             byte[] buffer = new byte[SIZE_RECEIVE_DATA];
-
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
-            SnakesProto.GameMessage message;
 
             try
             {
-
                 socket.receive(packet);
-
-
-                byte[] data = new byte[packet.getLength()];//TODO сократить
-                System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
-                message = SnakesProto.GameMessage.parseFrom(data);
-
-                switch (message.getTypeCase())
-                {
-                    case JOIN -> processJoinMsg(packet,message);
-                    case ACK -> processAckMsg(packet.getAddress().getHostAddress(), packet.getPort(), message);
-                    case STATE -> processStateMsg(message);
-                    case STEER -> processSteerMsg(message,packet.getAddress().getHostAddress(),packet.getPort());
-                    case ERROR -> processErrorMsg(packet.getAddress().getHostAddress(), packet.getPort(), message);
-                    case ROLE_CHANGE -> processRoleChangeMsg(packet.getAddress().getHostAddress(), packet.getPort(),message);
-                }
-
-                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.JOIN && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.DISCOVER &&
-                        message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ANNOUNCEMENT)
-                {
-//                    if (message.getTypeCase()== SnakesProto.GameMessage.TypeCase.ERROR) {
-//                        System.out.println("[SERVER] send ack for {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq());
-//                    }
-
-                    try {
-                        if (dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getSenderId()>0) {
-                            dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
-                                            MessageBuilder.getAckMsg(dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getSenderId(),
-                                                    dataServer.getReceiver(packet.getAddress().getHostAddress(), packet.getPort()).getReceiverId(),message.getMsgSeq())));
-                        }
-                        else {
-                            dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
-                                            MessageBuilder.getAckMsg(message)));
-                        }
-                    }
-                    catch (NullPointerException e)
-                    {
-                        dataServer.putGameMessages(new DataGameMessage(packet.getAddress().getHostAddress(), packet.getPort(),
-                                MessageBuilder.getAckMsg(message)));
-                        //System.err.println("NOT SUCH RECEIVER!");
-                    }
-                    //dataServer.deleteGameMessage();
-                }
-
-                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
-//                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-                ) {
-                    System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeReceive));
-                   // System.out.println();
-                    timeReceive=System.currentTimeMillis();
-                }
-
                 dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
+
+                SnakesProto.GameMessage message=parseFrom(packet);
+
+                processMessage(message, new Adress(packet.getAddress().getHostAddress(),packet.getPort()));
+                sendAck(message, new Adress(packet.getAddress().getHostAddress(),packet.getPort()));
             }
             catch (SocketTimeoutException e)
             {
@@ -213,7 +134,7 @@ public class Server extends Thread
             socketLock.unlock();
         }
     }
-    private void processRoleChangeMsg(String ip,int port,SnakesProto.GameMessage message)
+    private void processRoleChangeMsg(Adress adressFrom,SnakesProto.GameMessage message)
     {
         if(message.getRoleChange().hasReceiverRole() && message.getRoleChange().getReceiverRole()== SnakesProto.NodeRole.DEPUTY)
         {
@@ -222,51 +143,44 @@ public class Server extends Thread
         }
         else if (message.getRoleChange().hasSenderRole() && message.getRoleChange().getSenderRole()== SnakesProto.NodeRole.VIEWER)
         {
-            dataServer.setWantetViewer(new Adress(ip,port));
+            dataServer.setWantetViewer(adressFrom);
         }
     }
-    private void processErrorMsg(String ip,int port, SnakesProto.GameMessage message)
+    private void processErrorMsg(Adress adressFrom, SnakesProto.GameMessage message)
     {
-        System.err.println(" (" + message.getError().getErrorMessage()+") FROM "+ip+" : "+port);
+        System.err.println(" (" + message.getError().getErrorMessage()+") FROM "+adressFrom.getIp()+" : "+adressFrom.getPort());
     }
 
-    private void processSteerMsg(SnakesProto.GameMessage gameMessage, String ip,int port)
+    private void processSteerMsg(Adress adressFrom,SnakesProto.GameMessage gameMessage)
     {
         if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER) {
-            dataServer.addChgPlDir(gameMessage, ip,port);
+            dataServer.addChgPlDir(gameMessage, adressFrom);
         }
     }
 
     private void processStateMsg(SnakesProto.GameMessage gameState)
     {
-        if (dataServer.getServerRole()!= SnakesProto.NodeRole.MASTER)
+        if (dataServer.getServerRole()!= SnakesProto.NodeRole.MASTER &&
+                gameState.getMsgSeq()>msgSeqState)
         {
-//            dataServer.o++;
-//            o=dataServer.o;
-//            System.out.println("server made "+dataServer.o);
-            if (gameState.getMsgSeq()>msgSeqState) {
-                dataServer.setGameState(gameState.getState().getState());
-                msgSeqState=gameState.getMsgSeq();
-            }
+            dataServer.setGameState(gameState.getState().getState());
+            msgSeqState=gameState.getMsgSeq();
         }
     }
-    private void processAckMsg(String ip,int port, SnakesProto.GameMessage message)
+    private void processAckMsg(Adress adressFrom, SnakesProto.GameMessage message)
     {
-        if (message.hasReceiverId()) {
-            //System.err.println("IM JOINING ACK");
+        if (message.hasReceiverId())
+        {
             dataServer.setJoin(message);
         }
-        dataServer.deleteGameMessage(ip,port,message);
+        dataServer.deleteGameMessage(adressFrom,message);
     }
 
-    private void processJoinMsg(DatagramPacket packet, SnakesProto.GameMessage message)
+    private void processJoinMsg(Adress adressFrom, SnakesProto.GameMessage message)
     {
-        if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER) {
-
-//            dataServer.o++;
-//            o=dataServer.o;
-//            System.out.println("add acc "+dataServer.o);
-            dataServer.addAccededPlayers(new AccededPlayer(packet.getAddress().getHostAddress(), packet.getPort(),
+        if (dataServer.getServerRole()== SnakesProto.NodeRole.MASTER)
+        {
+            dataServer.addAccededPlayers(new AccededPlayer(adressFrom,
                     message.getJoin().getPlayerName(),
                     message.getJoin().getPlayerType(),
                     message.getJoin().getRequestedRole(),
@@ -274,7 +188,84 @@ public class Server extends Thread
         }
     }
 
-    private static NetworkInterface findNetworkInterface(String networkName) throws SocketException {
+
+
+    private void processMessage(SnakesProto.GameMessage message, Adress adressFrom)
+    {
+        switch (message.getTypeCase())
+        {
+            case JOIN -> processJoinMsg(adressFrom,message);
+            case ACK -> processAckMsg(adressFrom, message);
+            case STATE -> processStateMsg(message);
+            case STEER -> processSteerMsg(adressFrom,message);
+            case ERROR -> processErrorMsg(adressFrom, message);
+            case ROLE_CHANGE -> processRoleChangeMsg(adressFrom,message);
+        }
+    }
+
+    private void sendAck(SnakesProto.GameMessage message, Adress adressFrom)
+    {
+        if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.JOIN && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.DISCOVER &&
+                message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ANNOUNCEMENT)
+        {
+            try
+            {
+                Receiver receiver = dataServer.getReceiver(adressFrom);
+
+                if (receiver.getSenderId()>0) {
+                    dataServer.putGameMessages(new DataGameMessage(adressFrom,
+                            MessageBuilder.getAckMsg(receiver.getSenderId(),
+                                    receiver.getReceiverId(),message.getMsgSeq())));
+                }
+                else {
+                    dataServer.putGameMessages(new DataGameMessage(adressFrom,
+                            MessageBuilder.getAckMsg(message)));
+                }
+            }
+            catch (NullPointerException e)
+            {
+                dataServer.putGameMessages(new DataGameMessage(adressFrom,
+                        MessageBuilder.getAckMsg(message)));
+                //System.err.println("NOT SUCH RECEIVER!");
+            }
+        }
+    }
+
+    private DatagramPacket createPacket(DataGameMessage dataGameMessage) throws UnknownHostException
+    {
+        byte[] message = dataGameMessage.getGameMessage().toByteArray();
+        InetAddress receiverAddress = InetAddress.getByName(dataGameMessage.getIp());
+        return new DatagramPacket(message, message.length, receiverAddress, dataGameMessage.getPort());
+    }
+
+    private DatagramPacket createMulticastPacket() throws UnknownHostException
+    {
+        InetAddress group = InetAddress.getByName(MULTICAST_GROUP);
+        SnakesProto.GameMessage gameMessage = MessageBuilder.getAnnouncementMsg(dataServer, dataServer.pollMsgSeq());
+        byte[] message = gameMessage.toByteArray();
+        return new DatagramPacket(message, message.length, group, MULTICAST_PORT);
+    }
+
+    private SnakesProto.GameMessage parseFrom(DatagramPacket packet) throws InvalidProtocolBufferException
+    {
+        byte[] data = new byte[packet.getLength()];
+        System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
+        return SnakesProto.GameMessage.parseFrom(data);
+    }
+
+    private void checkToDo(DataGameMessage dataGameMessage)
+    {
+        if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.JOIN)
+        {
+            dataServer.setMaster(dataGameMessage.getIp(),dataGameMessage.getPort());
+        }
+        else if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.ACK)
+        {
+            dataServer.deleteGameMessage(new Adress(dataGameMessage.getIp(),dataGameMessage.getPort()),dataGameMessage.getGameMessage());
+        }
+    }
+
+    private NetworkInterface findNetworkInterface(String networkName) throws SocketException {
         for (NetworkInterface iface : Collections.list(NetworkInterface.getNetworkInterfaces())) {
             //System.out.println("Interface: " + iface.getDisplayName());
             if (iface.isUp() && !iface.isLoopback()) {
@@ -290,6 +281,28 @@ public class Server extends Thread
         return null;
     }
 
+
+//                    if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+//                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
+////                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                ) {
+//    System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeReceive));
+//    // System.out.println();
+//    timeReceive=System.currentTimeMillis();
+//}
+
+
+
+//    //                System.out.println("send through "+Math.abs(System.currentTimeMillis()-timeSend));
+////                timeSend=System.currentTimeMillis();
+//
+//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+////                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                ) {
+//    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeSend));
+//    timeSend=System.currentTimeMillis();
+//}
+
     private MulticastSocket socket;
     private Lock socketLock;
     private final DataServer dataServer;
@@ -298,9 +311,6 @@ public class Server extends Thread
     private long msgSeqState=-1;
 
     private long timeMulticast=System.currentTimeMillis();
-    private long timeSend=System.currentTimeMillis();
-    private long timeReceive=System.currentTimeMillis();
-
     private static final String MULTICAST_GROUP="239.192.0.4";
     private static final int MULTICAST_PORT=9192;
     private static final int LIMIT_MULTICAST=1000;

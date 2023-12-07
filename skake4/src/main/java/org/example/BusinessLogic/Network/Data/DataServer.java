@@ -36,26 +36,16 @@ public class DataServer
         changedPlayerDirection.clear();
         return ret;
     }
-    public synchronized void addChgPlDir(SnakesProto.GameMessage gameMessage, String ip,int port)
+    public synchronized void addChgPlDir(SnakesProto.GameMessage gameMessage,Adress adressFrom)
     {
-        if ( !changedPlayerDirection.containsKey(new Adress(ip,port))
-                || changedPlayerDirection.containsKey(new Adress(ip,port))
-                && changedPlayerDirection.get(new Adress(ip,port)).getMsgSeq()<gameMessage.getMsgSeq()) {
-            changedPlayerDirection.put(new Adress(ip,port), gameMessage);
+        if ( !changedPlayerDirection.containsKey(adressFrom)
+                || changedPlayerDirection.containsKey(adressFrom)
+                && changedPlayerDirection.get(adressFrom).getMsgSeq()<gameMessage.getMsgSeq()) {
+            changedPlayerDirection.put(adressFrom, gameMessage);
         }
     }
     public List<Player> getPlayers()
     {
-//        if (protect.equals(Protect.READ))
-//        {
-//            List<PlayerMaster> copyListPlayers = new ArrayList<>();
-//
-//            for (PlayerMaster player : players) {
-//                copyListPlayers.add(player.cloneSelf());
-//            }
-//            return copyListPlayers;
-//        }
-
         return players;
     }
     public synchronized void setPlayers(ArrayList<Player> players)
@@ -75,10 +65,6 @@ public class DataServer
 
     public synchronized DataGameConfig getDataGameConfig()
     {
-//        if (protect.equals(Protect.READ)) {
-//                return dataGameConfig.cloneSelf();
-//        }
-
         return dataGameConfig;
     }
 
@@ -149,16 +135,6 @@ public class DataServer
         futureCanJoin.complete(message);
     }
 
-
-    public synchronized long getMsgSeq()
-    {
-        return msgSeq;
-    }
-
-    public synchronized void addMsgSeq() {
-        this.msgSeq++;
-    }
-
     public synchronized long pollMsgSeq()
     {
         msgSeq++;
@@ -205,11 +181,11 @@ public class DataServer
         return null;
     }
 
-    public void deleteGameMessage(String ip,int port,SnakesProto.GameMessage message)
+    public void deleteGameMessage(Adress adressFrom,SnakesProto.GameMessage message)
     {
         for (Receiver receiver:receivers)
         {
-            if (receiver.getIp().equals(ip)&&receiver.getPort()==port)
+            if (receiver.getIp().equals(adressFrom.getIp())&&receiver.getPort()==adressFrom.getPort())
             {
                 receiver.deleteGameMessage(message);
                 break;
@@ -327,11 +303,11 @@ public class DataServer
         }
     }
 
-    public Receiver getReceiver(String ip,int port)
+    public Receiver getReceiver(Adress adress)
     {
         for (Receiver receiver:receivers)
         {
-            if (receiver.getIp().equals(ip)&&receiver.getPort()==port)
+            if (receiver.getIp().equals(adress.getIp())&&receiver.getPort()==adress.getPort())
             {
                 return receiver;
             }
