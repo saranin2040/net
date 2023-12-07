@@ -1,7 +1,5 @@
 package org.example.Visual;
 
-import org.example.BusinessLogic.Game;
-
 import javax.swing.*;
 import java.awt.*;
 

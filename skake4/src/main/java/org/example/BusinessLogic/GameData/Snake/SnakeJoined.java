@@ -1,6 +1,7 @@
-package org.example.BusinessLogic;
+package org.example.BusinessLogic.GameData.Snake;
 
 import me.ippolitov.fit.snakes.SnakesProto;
+import org.example.BusinessLogic.GameData.Coords;
 
 import java.util.ArrayList;
 import java.util.Collections;

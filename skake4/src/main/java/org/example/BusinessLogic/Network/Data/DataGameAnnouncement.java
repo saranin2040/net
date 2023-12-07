@@ -1,9 +1,8 @@
 package org.example.BusinessLogic.Network.Data;
 
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.Player;
-import org.example.BusinessLogic.PlayerJoined;
-import org.example.BusinessLogic.PlayerMaster;
+import org.example.BusinessLogic.GameData.Player.Player;
+import org.example.BusinessLogic.GameData.Player.PlayerJoined;
 
 import java.util.ArrayList;
 

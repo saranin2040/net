@@ -1,15 +1,12 @@
 package org.example.Visual;
 
-import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.BusinessLogic;
-import org.example.BusinessLogic.Coords;
-import org.example.BusinessLogic.Game;
-import org.example.BusinessLogic.Snake;
-import org.example.Controller.ControllerKeys;
+import org.example.BusinessLogic.GameData.Coords;
+import org.example.BusinessLogic.GameData.Game.Game;
+import org.example.BusinessLogic.GameData.Snake.Snake;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Random;
 

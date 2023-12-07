@@ -1,8 +1,10 @@
 package org.example.BusinessLogic.Network.Data;
 
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.*;
+import org.example.BusinessLogic.GameData.Game.Game;
+import org.example.BusinessLogic.GameData.Game.GameJoined;
 import org.example.BusinessLogic.Network.AccededPlayer;
+import org.example.BusinessLogic.GameData.Player.Player;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -163,7 +165,7 @@ public class DataServer
         accededPlayers.add(accededPlayer);
     }
 
-    public GameJoined getGame(int playerId,DataGameAnnouncement dataGameAnnouncement)
+    public GameJoined getGame(int playerId, DataGameAnnouncement dataGameAnnouncement)
     {
         SnakesProto.GameState gameState = getGameState();
         if (gameState==null)
@@ -171,16 +173,6 @@ public class DataServer
             return null;
         }
         return new GameJoined(gameState,playerId,dataGameAnnouncement);
-    }
-
-    public void setPort(int port)
-    {
-        this.port=port;
-    }
-
-    public int getPort()
-    {
-        return port;
     }
 
     public DataGameMessage pollGameMessage()
@@ -373,8 +365,6 @@ public class DataServer
     private int msgSeq=0;
 
     private final ArrayList<AccededPlayer> accededPlayers=new ArrayList<>();
-
-    int port=0;
 
     private boolean deputy=false;
     private Adress master=null;

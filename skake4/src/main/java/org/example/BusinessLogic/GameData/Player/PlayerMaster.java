@@ -1,4 +1,4 @@
-package org.example.BusinessLogic;
+package org.example.BusinessLogic.GameData.Player;
 
 import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.Network.Data.Adress;

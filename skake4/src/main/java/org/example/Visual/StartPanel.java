@@ -1,10 +1,7 @@
 package org.example.Visual;
 
-import org.example.BusinessLogic.Coords;
-
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 
 public class StartPanel extends JPanel
 {

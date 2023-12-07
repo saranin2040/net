@@ -1,7 +1,7 @@
 package org.example.Controller;
 
 import org.example.BusinessLogic.BusinessLogic;
-import org.example.BusinessLogic.GameMaster;
+import org.example.BusinessLogic.GameData.Game.GameMaster;
 import org.example.BusinessLogic.Menu;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 import org.example.Visual.Visual;

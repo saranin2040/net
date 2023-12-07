@@ -1,4 +1,4 @@
-package org.example.BusinessLogic;
+package org.example.BusinessLogic.GameData;
 
 import java.util.*;
 

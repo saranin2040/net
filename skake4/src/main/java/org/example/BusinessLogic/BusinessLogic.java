@@ -1,9 +1,14 @@
 package org.example.BusinessLogic;
 
 import me.ippolitov.fit.snakes.SnakesProto;
+import org.example.BusinessLogic.GameData.Game.Game;
+import org.example.BusinessLogic.GameData.Game.GameJoined;
+import org.example.BusinessLogic.GameData.Game.GameMaster;
+import org.example.BusinessLogic.GameData.Game.GameUpdate;
 import org.example.BusinessLogic.Network.Data.Adress;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 import org.example.BusinessLogic.Network.Network;
+import org.example.BusinessLogic.GameData.Player.Player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +103,7 @@ public class BusinessLogic
     public synchronized void createNewGame(String gameName,int width,int height,int foods, int delay)
     {
         restart();
-        game=menu.createNewGame(gameName,playerName,width,height,foods,delay);
+        game=new GameMaster(gameName,playerName,width,height,foods,delay);
         network.startMasterServer(game);
         status=StatusGame.PLAY;
     }
@@ -207,7 +212,6 @@ public class BusinessLogic
 
 
     GameUpdate game=null;
-    Menu menu=new Menu();
 
     private String playerName="saranin2040";
 

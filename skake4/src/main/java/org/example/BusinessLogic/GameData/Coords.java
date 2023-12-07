@@ -1,4 +1,4 @@
-package org.example.BusinessLogic;
+package org.example.BusinessLogic.GameData;
 
 public class Coords {
     Coords()

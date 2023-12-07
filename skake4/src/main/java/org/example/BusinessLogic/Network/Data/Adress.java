@@ -1,7 +1,5 @@
 package org.example.BusinessLogic.Network.Data;
 
-import org.example.BusinessLogic.Coords;
-
 import java.util.Objects;
 
 public class Adress

@@ -1,8 +1,14 @@
-package org.example.BusinessLogic;
+package org.example.BusinessLogic.GameData.Game;
 
 import me.ippolitov.fit.snakes.SnakesProto;
+import org.example.BusinessLogic.GameData.Coords;
+import org.example.BusinessLogic.GameData.Field;
 import org.example.BusinessLogic.Network.Data.Adress;
 import org.example.BusinessLogic.Network.ReceiveNeedInformation;
+import org.example.BusinessLogic.GameData.Player.Player;
+import org.example.BusinessLogic.GameData.Player.PlayerMaster;
+import org.example.BusinessLogic.GameData.Snake.Snake;
+import org.example.BusinessLogic.GameData.Snake.SnakeMaster;
 
 import java.util.*;
 
@@ -18,7 +24,7 @@ public class GameMaster implements GameUpdate
         snakes.put(1,new SnakeMaster(1,getFreeCoords()));
     }
 
-    public GameMaster(String gameName,Player player, int width,int height,int foods, int delay,ArrayList<Player> players ,ArrayList<Snake> snakes,Adress adressM,Game game)
+    public GameMaster(String gameName, Player player, int width, int height, int foods, int delay, ArrayList<Player> players , ArrayList<Snake> snakes, Adress adressM, Game game)
     {
         this.gameName=gameName;
         this.field=game.getField();

@@ -1,7 +1,6 @@
 package org.example.BusinessLogic.Network;
 
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.Player;
 
 public class AccededPlayer
 {
