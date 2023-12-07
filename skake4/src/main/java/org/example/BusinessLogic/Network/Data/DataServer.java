@@ -1,8 +1,8 @@
 package org.example.BusinessLogic.Network.Data;
 
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.GameData.Game.Game;
-import org.example.BusinessLogic.GameData.Game.GameJoined;
+import org.example.BusinessLogic.GameData.Game;
+import org.example.BusinessLogic.GameData.GameJoined;
 import org.example.BusinessLogic.Network.AccededPlayer;
 import org.example.BusinessLogic.GameData.Player.Player;
 

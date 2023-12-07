@@ -2,7 +2,7 @@ package org.example.Visual;
 
 import org.example.BusinessLogic.BusinessLogic;
 import org.example.BusinessLogic.GameData.Coords;
-import org.example.BusinessLogic.GameData.Game.Game;
+import org.example.BusinessLogic.GameData.Game;
 import org.example.BusinessLogic.GameData.Snake.Snake;
 
 import javax.swing.*;

@@ -83,7 +83,7 @@ public class SnakeMaster implements Snake
     }
     public synchronized ArrayList<Coords> getBody()
     {
-        return new ArrayList<Coords>(body);
+        return new ArrayList<>(body);
     }
     public SnakesProto.GameState.Snake.SnakeState getState()
     {

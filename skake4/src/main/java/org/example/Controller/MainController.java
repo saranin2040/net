@@ -1,8 +1,7 @@
 package org.example.Controller;
 
 import org.example.BusinessLogic.BusinessLogic;
-import org.example.BusinessLogic.GameData.Game.GameMaster;
-import org.example.BusinessLogic.Menu;
+import org.example.BusinessLogic.GameData.GameMaster;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 import org.example.Visual.Visual;
 
@@ -133,7 +132,6 @@ public class MainController {
         Scanner scanner = new Scanner(System.in);
         return scanner.nextInt();
     }
-    private Menu menu=new Menu();
     private GameMaster game;
     Visual app;
 }

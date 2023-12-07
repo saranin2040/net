@@ -1,10 +1,10 @@
 package org.example.BusinessLogic;
 
 import me.ippolitov.fit.snakes.SnakesProto;
-import org.example.BusinessLogic.GameData.Game.Game;
-import org.example.BusinessLogic.GameData.Game.GameJoined;
-import org.example.BusinessLogic.GameData.Game.GameMaster;
-import org.example.BusinessLogic.GameData.Game.GameUpdate;
+import org.example.BusinessLogic.GameData.Game;
+import org.example.BusinessLogic.GameData.GameJoined;
+import org.example.BusinessLogic.GameData.GameMaster;
+import org.example.BusinessLogic.GameData.GameUpdate;
 import org.example.BusinessLogic.Network.Data.Adress;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 import org.example.BusinessLogic.Network.Network;

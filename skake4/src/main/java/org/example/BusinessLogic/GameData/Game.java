@@ -1,4 +1,4 @@
-package org.example.BusinessLogic.GameData.Game;
+package org.example.BusinessLogic.GameData;
 
 import org.example.BusinessLogic.GameData.Coords;
 import org.example.BusinessLogic.GameData.Field;

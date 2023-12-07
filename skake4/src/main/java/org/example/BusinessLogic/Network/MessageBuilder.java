@@ -2,8 +2,8 @@ package org.example.BusinessLogic.Network;
 
 import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.GameData.Coords;
-import org.example.BusinessLogic.GameData.Game.Game;
-import org.example.BusinessLogic.GameData.Game.GameMaster;
+import org.example.BusinessLogic.GameData.Game;
+import org.example.BusinessLogic.GameData.GameMaster;
 import org.example.BusinessLogic.Network.Data.DataGameConfig;
 import org.example.BusinessLogic.Network.Data.DataServer;
 import org.example.BusinessLogic.GameData.Player.Player;

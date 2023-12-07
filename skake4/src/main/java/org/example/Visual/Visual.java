@@ -2,7 +2,7 @@ package org.example.Visual;
 
 import org.example.BusinessLogic.*;
 import org.example.BusinessLogic.GameData.Coords;
-import org.example.BusinessLogic.GameData.Game.Game;
+import org.example.BusinessLogic.GameData.Game;
 import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 import org.example.BusinessLogic.GameData.Player.Player;
 import org.example.Controller.ControllerKeys;

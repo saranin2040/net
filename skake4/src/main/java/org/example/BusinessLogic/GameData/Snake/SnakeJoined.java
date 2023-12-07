@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SnakeJoined implements Snake
 {
-    SnakeJoined(SnakesProto.GameState.Snake snake, int width, int height )
+    public SnakeJoined(SnakesProto.GameState.Snake snake, int width, int height )
     {
         direct=snake.getHeadDirection();
         state=snake.getState();
