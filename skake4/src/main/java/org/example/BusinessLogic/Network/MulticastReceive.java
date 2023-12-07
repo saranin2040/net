@@ -43,11 +43,9 @@ public class MulticastReceive implements Runnable
             // Создаем буфер для приема данных
             byte[] buffer = new byte[1024];
 
-            int i=0;
 
             while (true)
             {
-                i++;
 
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
