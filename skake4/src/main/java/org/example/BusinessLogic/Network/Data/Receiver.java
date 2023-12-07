@@ -131,7 +131,17 @@ public class Receiver
             }
         }
 
-        return Math.abs(System.currentTimeMillis()-timeLastReceive)>STATE_DELAY_MS*0.8;
+        long x=Math.abs(System.currentTimeMillis()-timeLastReceive);
+        if (x>STATE_DELAY_MS*0.8)
+        {
+            int y=0;
+            //System.err.println("check delete "+(x>STATE_DELAY_MS*0.8));
+        }
+
+
+       // System.out.println("check delete "+(x>STATE_DELAY_MS*0.8));
+
+        return Math.abs(System.currentTimeMillis()-timeLastReceive)>STATE_DELAY_MS;
     }
 
     public int getReceiverId()

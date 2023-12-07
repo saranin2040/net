@@ -22,16 +22,11 @@ public class Network implements ReceiveNeedInformation
     {
         if (server!=null) {
             server.interrupt();
+            server=null;
             dataServer = null;
             serverWork=false;
         }
     }
-
-    public int getSome()
-    {
-        return dataServer.o;
-    }
-
     public void setServerMaster(Game game)
     {
         dataServer.update(game);
@@ -54,7 +49,7 @@ public class Network implements ReceiveNeedInformation
                     game.getField().getHeight(),
                     game.getField().getMaxFoods(),
                     game.getDelayMs()));
-            server = new Thread(new Server(dataServer, Role.MASTER));
+            server = new Server(dataServer, Role.MASTER);
 
         dataServer.setServerRole(SnakesProto.NodeRole.MASTER);
 
@@ -87,7 +82,7 @@ public class Network implements ReceiveNeedInformation
         dataServer.setServerRole(SnakesProto.NodeRole.NORMAL);
 
         if (!serverWork) {
-            server = new Thread(new Server(dataServer, Role.NORMAL));
+            server = new Server(dataServer, Role.NORMAL);
             server.start();
             serverWork=true;
             System.err.println("bad");

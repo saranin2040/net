@@ -12,7 +12,7 @@ import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 
-public class PingSender implements Runnable
+public class PingSender extends Thread
 {
     public PingSender(MulticastSocket socket, Lock sockeLock, DataTimeSend dataTimeSend,DataServer dataServer)
     {
@@ -23,24 +23,27 @@ public class PingSender implements Runnable
     }
     public void run()
     {
-        ArrayList<Adress> dataGameMessages=dataServer.getPingReceivers();
+        while(!Thread.interrupted())
+        {
+            ArrayList<Adress> dataGameMessages = dataServer.getPingReceivers();
 
-        for(Adress adress:dataGameMessages) {
-            try {
-                byte[] message = MessageBuilder.getPingMsg(dataServer.pollMsgSeq()).toByteArray();
+            for (Adress adress : dataGameMessages) {
+                try {
+                    byte[] message = MessageBuilder.getPingMsg(dataServer.pollMsgSeq()).toByteArray();
 
-                InetAddress receiverAddress = InetAddress.getByName(adress.getIp());
-                DatagramPacket packet = new DatagramPacket(message, message.length, receiverAddress, adress.getPort());
+                    InetAddress receiverAddress = InetAddress.getByName(adress.getIp());
+                    DatagramPacket packet = new DatagramPacket(message, message.length, receiverAddress, adress.getPort());
 
-                socketLock.lock();
-                socket.send(packet);
+                    socketLock.lock();
+                    socket.send(packet);
 
-                //System.out.println("[PING] send {ip:" + adress.getIp() + " port: "+adress.getPort()+"}");
+                    //System.out.println("[PING] send {ip:" + adress.getIp() + " port: "+adress.getPort()+"}");
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                socketLock.unlock();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    socketLock.unlock();
+                }
             }
         }
     }

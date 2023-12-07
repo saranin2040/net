@@ -15,19 +15,13 @@ import java.util.Collections;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Server implements Runnable
+public class Server extends Thread
 {
     public Server(DataServer dataServer, Role role)
     {
 
-        //System.err.println("NEW SERVER!!!");
         this.role=role;
         this.dataServer = dataServer;
-
-        if (dataServer.getServerRole()== SnakesProto.NodeRole.NORMAL)
-        {
-            dataServer.setTypeRequest(TypeRequest.JOIN);
-        }
 
         try {
             socket = new MulticastSocket();
@@ -42,7 +36,7 @@ public class Server implements Runnable
             socket.setNetworkInterface(networkInterface);
 
             socketLock= new ReentrantLock();
-            pingSender=new Thread(new PingSender(socket,socketLock,dataTimeSend,dataServer));
+            pingSender=new PingSender(socket,socketLock,dataTimeSend,dataServer);
             pingSender.start();
         }
         catch (IOException e)
@@ -54,21 +48,13 @@ public class Server implements Runnable
 
     public void run()
     {
-        while (true)
+        while (!Thread.interrupted())
         {
-//            if (dataServer.o<o)
-//            {
-//                System.err.println("CATASTROFA!!!");
-//            }
-//            else
-//            {
-//                System.err.println("server my o = "+dataServer.o);
-//            }
-
             sendData();
             receiveData();
             dataServer.deleteOfflineReceivers();
         }
+        pingSender.interrupt();
     }
 
     private void sendData()
@@ -99,12 +85,15 @@ public class Server implements Runnable
 
 
                 socket.send(packet);
+//                System.out.println("send through "+Math.abs(System.currentTimeMillis()-timeSend));
+//                timeSend=System.currentTimeMillis();
 
-                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-                ) {
-                    //System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq());
-                }
+//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+//                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                ) {
+                    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeSend));
+                timeSend=System.currentTimeMillis();
+                //}
 
 
             } catch (IOException e) {
@@ -165,6 +154,7 @@ public class Server implements Runnable
 
                 socket.receive(packet);
 
+
                 byte[] data = new byte[packet.getLength()];//TODO сократить
                 System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
                 message = SnakesProto.GameMessage.parseFrom(data);
@@ -206,12 +196,14 @@ public class Server implements Runnable
                     //dataServer.deleteGameMessage();
                 }
 
-                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
-                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-                ) {
-                    //System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq());
-                }
+//                if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+//                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
+//                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                ) {
+                    System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeReceive));
+                   // System.out.println();
+                    timeReceive=System.currentTimeMillis();
+               // }
 
                 dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
             }
@@ -312,6 +304,8 @@ public class Server implements Runnable
     private long msgSeqState=-1;
 
     private long timeMulticast=System.currentTimeMillis();
+    private long timeSend=System.currentTimeMillis();
+    private long timeReceive=System.currentTimeMillis();
     private Role role;
     private DataServer dataServer;
     private DataTimeSend dataTimeSend=new DataTimeSend();

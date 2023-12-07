@@ -4,7 +4,6 @@ import me.ippolitov.fit.snakes.SnakesProto;
 import org.example.BusinessLogic.*;
 import org.example.BusinessLogic.Network.AccededPlayer;
 import org.example.BusinessLogic.Network.Protect;
-import org.example.BusinessLogic.Network.TypeRequest;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -89,14 +88,6 @@ public class DataServer
 
         return dataGameConfig;
     }
-    public TypeRequest getTypeRequest()
-    {
-        return typeRequest;
-    }
-    public synchronized void setTypeRequest(TypeRequest typeRequest)
-    {
-        this.typeRequest=typeRequest;
-    }
 
     public boolean getCanJoin()
     {
@@ -149,19 +140,13 @@ public class DataServer
     {
         try
         {
-
-            //System.out.println("in get state in "+(int)(STATE_DELAY_MS*0.8));
-
             SnakesProto.GameState gameState = futureGameState.get((int)(STATE_DELAY_MS*0.8),TimeUnit.MILLISECONDS);
             futureGameState = new CompletableFuture<>();
-            //System.out.println("out get state good");
 
             return gameState;
         }
         catch (InterruptedException | ExecutionException | TimeoutException e)
         {
-            //System.out.println("out get state bad");
-            //e.printStackTrace();
             return null;
         }
     }
@@ -385,6 +370,7 @@ public class DataServer
             if (receiver.isOffline())
             {
                 offlineReceivers.offer(new Adress(receiver.getIp(),receiver.getPort()));
+                System.err.println("disconnect "+receiver.getIp()+":"+receiver.getPort());
                 iterator.remove();
             }
         }
@@ -473,7 +459,6 @@ public class DataServer
 
     private List<Player> players = Collections.synchronizedList(new ArrayList<Player>());
     private boolean needSend=false;
-    private TypeRequest typeRequest=TypeRequest.NONE;
     private SnakesProto.GameMessage.TypeCase typeSend=null;
     private SnakesProto.GameMessage gameMessage=null;
 
@@ -506,6 +491,4 @@ public class DataServer
     List<Adress> wantedViewers = Collections.synchronizedList(new ArrayList<>());
 
     private static int STATE_DELAY_MS=5000;
-
-    public volatile int o=1;
 }

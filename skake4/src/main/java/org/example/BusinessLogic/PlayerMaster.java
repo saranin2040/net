@@ -29,6 +29,7 @@ public class PlayerMaster implements Player
 
     public PlayerMaster(String ipAddress, int port, String name, SnakesProto.NodeRole role, SnakesProto.PlayerType type)
     {
+        this.score=0;
         this.name = name;
         this.ipAddress = ipAddress;
         this.port = port;
@@ -50,7 +51,7 @@ public class PlayerMaster implements Player
     public PlayerMaster(Player player,int id)
     {
         name=player.getName();
-        score=0;
+        score=player.getScore();
         this.id=id;
         port=player.getPort();
         ipAddress=player.getIpAddress();

@@ -40,7 +40,7 @@ public class MainController {
 //            int delay = scanInt();
 
             //bc.createNewGame(name,playerName,width,height,foods,delay);
-            bc.createNewGame("Nemo",20,20,10,1000);
+            bc.createNewGame("Nemo",10,10,10,100);
         }
         else {
             while(true)
