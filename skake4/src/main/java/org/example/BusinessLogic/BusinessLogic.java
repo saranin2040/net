@@ -98,13 +98,20 @@ public class BusinessLogic
     }
     public void setStatusBuilding()
     {
+        exit();
         status=StatusGame.BUILDING;
-        game=null;
+    }
+
+    public void setStatusChangingPlayerName()
+    {
+        exit();
+        status=StatusGame.CHANGING_PLAYER_NAME;
     }
 
     public void setPlayerName(String playerName)
     {
         this.playerName = playerName;
+        status=StatusGame.NONE;
     }
 
     public void restart()
@@ -182,6 +189,12 @@ public class BusinessLogic
         }
     }
 
+    private void gameOver()
+    {
+        exit();
+        status=StatusGame.GAME_OVER;
+    }
+
     private synchronized void updateGame()
     {
         if (status==StatusGame.PLAY)
@@ -202,6 +215,12 @@ public class BusinessLogic
                     addPlayers();
                     setDeputy(gameMaster);
                     network.sendGameState(game);
+                    network.updateDataAnnouncment(game);
+                }
+
+                if (game.getSnakes().size()==0)
+                {
+                    gameOver();
                 }
             }
         }

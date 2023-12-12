@@ -3,9 +3,9 @@ package org.example.Visual;
 import javax.swing.*;
 import java.awt.*;
 
-public class JoiningPanel extends JPanel
+public class GameOverPanel extends JPanel
 {
-    public JoiningPanel() {
+    public GameOverPanel() {
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
 
         JLabel label = new JLabel(text);
@@ -17,5 +17,5 @@ public class JoiningPanel extends JPanel
         add(label);
     }
 
-    private final String text="Joining...";
+    private final String text="Game over :(";
 }

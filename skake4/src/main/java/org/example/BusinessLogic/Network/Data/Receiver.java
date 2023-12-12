@@ -141,7 +141,7 @@ public class Receiver
 
        // System.out.println("check delete "+(x>STATE_DELAY_MS*0.8));
 
-        return Math.abs(System.currentTimeMillis()-timeLastReceive)>STATE_DELAY_MS;
+        return Math.abs(System.currentTimeMillis()-timeLastReceive)>STATE_DELAY_MS*10;
     }
 
     public int getReceiverId()

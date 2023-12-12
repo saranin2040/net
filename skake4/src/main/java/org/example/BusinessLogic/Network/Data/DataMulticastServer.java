@@ -7,36 +7,26 @@ public class DataMulticastServer
 
     public synchronized void addFoundGame(DataGameAnnouncement foundGame)
     {
-        //DataGameAnnouncement f=new DataGameAnnouncement("192.168.0.95","g");
-        //f.equals(foundGame);
+        foundGames.put(new Adress(foundGame.getIp(),foundGame.getPort()),foundGame);
+    }
+    public void deleteLeftGames()
+    {
+        Iterator<Map.Entry<Adress, DataGameAnnouncement>> iterator = foundGames.entrySet().iterator();
 
-        if (!foundGames.contains(foundGame)) {
-            foundGames.add(foundGame);
-        }
-
-        for (DataGameAnnouncement f:foundGames)
-        {
-            if (f.equals(foundGame))
-            {
-                f.setTime(System.currentTimeMillis());
-            }
-        }
-
-        Iterator<DataGameAnnouncement> iterator = foundGames.iterator();
         while (iterator.hasNext()) {
-            DataGameAnnouncement f = iterator.next();
-            if (f.ifOffline()) {
-                iterator.remove(); // спользуем итератор для безопасного удаления
+            Map.Entry<Adress, DataGameAnnouncement> entry = iterator.next();
+            if (entry.getValue().ifOffline()) {
+                iterator.remove();
             }
         }
-
     }
 
     public synchronized ArrayList<DataGameAnnouncement> getFoundGame()
     {
-        return new ArrayList<DataGameAnnouncement>(foundGames);
+        return new ArrayList<>(foundGames.values());
     }
 
     //private ArrayList<DataGameAnnouncement> foundGames = Collections.synchronizedSet(new HashSet<>());
-    private List<DataGameAnnouncement> foundGames = Collections.synchronizedList(new ArrayList<>());
+    //private List<DataGameAnnouncement> foundGames = Collections.synchronizedList(new ArrayList<>());
+    private Map<Adress, DataGameAnnouncement> foundGames = new HashMap<>();
 }

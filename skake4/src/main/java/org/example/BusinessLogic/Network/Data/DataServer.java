@@ -75,12 +75,16 @@ public class DataServer
     }
 
 
-    public void update(Game game)
+    public void updateDataAnnouncment(Game game)
     {
         this.gameName=game.getGameName();
         this.players=game.getPlayers();
-
         setPlayers(game.getPlayers());
+
+        setDataGameConfig(new DataGameConfig(game.getField().getWidth(),
+                game.getField().getHeight(),
+                game.getField().getMaxFoods(),
+                game.getDelayMs()));
     }
 
     public void setGameState(SnakesProto.GameState gameState)

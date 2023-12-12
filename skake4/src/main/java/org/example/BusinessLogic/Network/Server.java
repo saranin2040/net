@@ -19,8 +19,6 @@ public class Server implements Runnable
     {
         this.dataServer = dataServer;
 
-
-
         try {
             socket = new MulticastSocket();
 

@@ -29,35 +29,12 @@ public class Visual extends JFrame {
         setSize(1300, 800);
         setLocationRelativeTo(null);
 
-        if (bc.getGame() != null) {
-            height = bc.getGame().getField().getHeight();
-            width = bc.getGame().getField().getWidth();
-        }
-
-        //gridPanel=new Custom(bc);
         gridPanel=new StartPanel();
-        //gridPanel = new Custom(new GridLayout(bc.getGame().getField().getWidth(), bc.getGame().getField().getHeight()));
-        //gridPanel = new JPanel(new GridLayout(bc.getGame().getField().getHeight(),bc.getGame().getField().getWidth()));
-        //gridPanel.setBackground(Color.BLACK);
         gridPanel.setPreferredSize(new Dimension(900, 100));
 
-
-
-
-
-
-        // Создаем панель для размещения playersScrollPane и заголовка
         playersPanel=createList("Player list");
         gameInfoPanel=createList("Game inf");
 
-
-//        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, containerPanel);
-//        splitPane.setResizeWeight(1.0);
-
-
-
-
-        // Создаем таблицу
         gameTableModel = new DefaultTableModel();
         gameTableModel.addColumn("Game name");
         gameTableModel.addColumn("Master");
@@ -89,8 +66,6 @@ public class Visual extends JFrame {
         tablePanel.add(tableTitleLabel, BorderLayout.NORTH);
         tablePanel.add(tableScrollPane, BorderLayout.CENTER);
 
-
-
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout()); // Выберите подходящий менеджер компоновки
 
@@ -112,15 +87,17 @@ public class Visual extends JFrame {
             bc.setStatusBuilding();
         });
 
-        playerNameButton.addActionListener(e -> {
-            if (bc.getStatus()==StatusGame.NONE) {
-                System.out.println("enter player name:");
-                Scanner scanner = new Scanner(System.in);
-                String str = scanner.nextLine();
-
-                bc.setPlayerName(str);
-                System.out.println("change name: "+bc.getPlayerName());
-            }
+        playerNameButton.addActionListener(e ->
+        {
+            bc.setStatusChangingPlayerName();
+//            if (bc.getStatus()==StatusGame.NONE) {
+//                System.out.println("enter player name:");
+//                Scanner scanner = new Scanner(System.in);
+//                String str = scanner.nextLine();
+//
+//                bc.setPlayerName(str);
+//                System.out.println("change name: "+bc.getPlayerName());
+//            }
         });
 
         exitButton.addActionListener(e -> {
@@ -154,7 +131,7 @@ public class Visual extends JFrame {
         finalPanel.add(mainRightSplitPane, BorderLayout.CENTER);
         finalPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-          mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, finalPanel);
+        mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, finalPanel);
         mainSplitPane.setResizeWeight(0.75);
 
         add(mainSplitPane);
@@ -184,8 +161,6 @@ public class Visual extends JFrame {
 
     public void update2(Game game)
     {
-        //gridPanel.setGame(game);
-
         if (bc.getStatus()==StatusGame.PLAY)
         {
             requestFocus();
@@ -196,15 +171,13 @@ public class Visual extends JFrame {
             }
             else
             {
-                gridPanel=new Custom(bc);
+                gridPanel=new Custom();
                 gridPanel.setPreferredSize(new Dimension(900, 100));
                 mainSplitPane.setLeftComponent(gridPanel);
                 Custom custom = (Custom) gridPanel;
                 custom.setGame(game);
 
             }
-
-
         }
         else if (bc.getStatus()==StatusGame.BUILDING)
         {
@@ -219,12 +192,25 @@ public class Visual extends JFrame {
         {
             if (!(gridPanel instanceof JoiningPanel))
             {
-
-
                 gridPanel=new JoiningPanel();
                 mainSplitPane.setLeftComponent(gridPanel);
             }
-        } else if (bc.getStatus()==StatusGame.NONE)
+        } else if (bc.getStatus()==StatusGame.CHANGING_PLAYER_NAME)
+        {
+            if (!(gridPanel instanceof ChangePlayerNamePanel))
+            {
+                gridPanel=new ChangePlayerNamePanel(bc);
+                mainSplitPane.setLeftComponent(gridPanel);
+            }
+        }else if (bc.getStatus()==StatusGame.GAME_OVER)
+        {
+            if (!(gridPanel instanceof GameOverPanel))
+            {
+                gridPanel=new GameOverPanel();
+                mainSplitPane.setLeftComponent(gridPanel);
+            }
+        }
+        else if (bc.getStatus()==StatusGame.NONE)
         {
             if (!(gridPanel instanceof StartPanel))
             {
@@ -236,12 +222,11 @@ public class Visual extends JFrame {
             }
         }
 
-        if (game!=null) {
-            height = game.getField().getHeight();
-            width = game.getField().getWidth();
-            playersPanel.list.removeAll();
-            gameInfoPanel.list.removeAll();
+        playersPanel.list.removeAll();
+        gameInfoPanel.list.removeAll();
 
+        if (game!=null)
+        {
             paintPlayers(game.getPlayersRate());
             paintGameInf(game);
         }
@@ -255,19 +240,11 @@ public class Visual extends JFrame {
         repaint();
     }
 
-//    @Override
-//    public void update(Graphics g) {
-//        gr
-//    }
-
     private void paintPlayers(ArrayList<Player> players)
     {
         int i=1;
         for (Player player : players)
         {
-//            JLabel playerLabel = new JLabel();
-//            Font labelFont = playerLabel.getFont();
-//            playerLabel.setFont(new Font(labelFont.getName(), Font.PLAIN, 24)); // Установка размера шрифта 14
             playersPanel.addString(i+". " + player.getName() + " " + player.getScore());
             i++;
         }
@@ -282,17 +259,7 @@ public class Visual extends JFrame {
 
     public  void updateGameTable(ArrayList<DataGameAnnouncement> listGames)
     {
-        // Очищаем данные в таблице
         gameTableModel.setRowCount(0);
-
-//        gameTableModel.addRow(new Object[]{
-//                "lol",
-//                "listGame.getMasterName()",
-//                "listGame.getplayers().size()",
-//               " listGame.getWidth() +  + listGame.getHeight()",
-//               " listGame.getCountFood()"
-//        });
-
 
         for (DataGameAnnouncement listGame:listGames) {
             gameTableModel.addRow(new Object[]{
@@ -303,15 +270,6 @@ public class Visual extends JFrame {
                     listGame.getCountFood()
             });
         }
-    }
-
-    private boolean containsCoords(int x, int y,ArrayList<Coords> coords) {
-        for (Coords coord : coords) {
-            if (coord.x == x && coord.y == y) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private ListView createList(String nameList)
@@ -352,7 +310,6 @@ public class Visual extends JFrame {
 
     static class ButtonEditor extends DefaultCellEditor {
         private JButton button;
-        private String cellValue;
 
         public ButtonEditor(JTextField textField,BusinessLogic bc)
         {
@@ -367,27 +324,18 @@ public class Visual extends JFrame {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
         {
             joinController.setInf((String) table.getValueAt(row, 1),(String) table.getValueAt(row, 0));
-            //button.requestFocusInWindow();
-            //joinController.setInf(String.valueOf(row)+" "+String.valueOf(column));
-            //cellValue = (String) table.getValueAt(2, column);
             return button;
         }
 
         JoinController joinController;
     }
 
-    //JPanel gridPanel;
-    int width;
-    int height;
-    int squareSize=20;
     private ListView playersPanel;
     private ListView gameInfoPanel;
-    //private JScrollPane playersScrollPane;
     DefaultTableModel gameTableModel;
     BusinessLogic bc;
 
     private final int SIZE_TEXT=25;
-    //private Custom gridPanel;
     private JPanel gridPanel;
 
     private Timer timer;

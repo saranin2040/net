@@ -5,18 +5,6 @@ import java.awt.*;
 
 public class StartPanel extends JPanel
 {
-    public StartPanel()
-    {
-//        ImageIcon imageIcon = new ImageIcon(pathImage);
-//
-//        setLayout(new BorderLayout());
-//
-//        JLabel imageLabel = new JLabel(imageIcon);
-//        imageLabel.setHorizontalAlignment(JLabel.CENTER);
-//        imageLabel.setVerticalAlignment(JLabel.CENTER);
-//
-//        add(imageLabel, BorderLayout.CENTER);
-    }
 
     private void paintImage(Graphics g){
         Graphics2D g2 = (Graphics2D) g;
@@ -34,8 +22,7 @@ public class StartPanel extends JPanel
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-//        paintField(g);
+        super.paintComponent(g);;
         paintImage(g);
     }
 

@@ -8,18 +8,6 @@ import java.util.ArrayList;
 
 public class DataGameAnnouncement
 {
-
-//    private class FoundPlayer
-//    {
-//        private String name;
-//        int id;
-//        String ip;
-//        int port;
-//        Role role;
-//        PlayersType type;
-//        int score;
-//    }
-
     public DataGameAnnouncement(String ip, int port, String gameName, int width, int height, int countFood, SnakesProto.GamePlayers players,int delayMs) {
         this.ip = ip;
         this.gameName = gameName;
@@ -130,5 +118,5 @@ public class DataGameAnnouncement
 
     ArrayList<Player> players=new ArrayList<>();
 
-    private static int STATE_DELAY_MS=5000;
+    private static int STATE_DELAY_MS=3000;
 }

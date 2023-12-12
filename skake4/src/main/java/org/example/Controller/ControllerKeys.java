@@ -16,9 +16,9 @@ public class ControllerKeys extends KeyAdapter
     }
 
     @Override
-    public void keyPressed(KeyEvent e) {
-        // Обрабатываем нажатие клавиши W
-        if (bc.getGame().getMasterPlayer().getRole()!= SnakesProto.NodeRole.VIEWER) {
+    public void keyPressed(KeyEvent e)
+    {
+        if (bc.getGame().getMainPlayer().getRole()!= SnakesProto.NodeRole.VIEWER) {
             if (e.getKeyChar() == 'w') {
                 bc.updateMainPlayesDirect(SnakesProto.Direction.UP);
             } else if (e.getKeyChar() == 's') {

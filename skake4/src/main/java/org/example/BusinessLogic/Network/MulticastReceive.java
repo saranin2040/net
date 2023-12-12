@@ -36,26 +36,39 @@ public class MulticastReceive implements Runnable
             multicastSocket.joinGroup(socketAddress, networkInterface);
 
 
-            while (!Thread.interrupted())
-            {
-                byte[] buffer = new byte[1024];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-                multicastSocket.receive(packet);
+                while (!Thread.interrupted())
+                {
+                    try
+                    {
+                        byte[] buffer = new byte[1024];
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-                byte[] data = new byte[packet.getLength()];
-                System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
-                SnakesProto.GameMessage message = SnakesProto.GameMessage.parseFrom(data);
+                        multicastSocket.setSoTimeout(100);
+                        multicastSocket.receive(packet);
 
-                dataMulticastServer.addFoundGame(new DataGameAnnouncement(packet.getAddress().getHostAddress(),
-                        packet.getPort(),
-                        message.getAnnouncement().getGames(0).getGameName(),
-                        message.getAnnouncement().getGames(0).getConfig().getWidth(),
-                        message.getAnnouncement().getGames(0).getConfig().getHeight(),
-                        message.getAnnouncement().getGames(0).getConfig().getFoodStatic(),
-                        message.getAnnouncement().getGames(0).getPlayers(),
-                        message.getAnnouncement().getGames(0).getConfig().getStateDelayMs()));
-            }
+                        byte[] data = new byte[packet.getLength()];
+                        System.arraycopy(packet.getData(), packet.getOffset(), data, 0, packet.getLength());
+                        SnakesProto.GameMessage message = SnakesProto.GameMessage.parseFrom(data);
+
+                        dataMulticastServer.addFoundGame(new DataGameAnnouncement(packet.getAddress().getHostAddress(),
+                                packet.getPort(),
+                                message.getAnnouncement().getGames(0).getGameName(),
+                                message.getAnnouncement().getGames(0).getConfig().getWidth(),
+                                message.getAnnouncement().getGames(0).getConfig().getHeight(),
+                                message.getAnnouncement().getGames(0).getConfig().getFoodStatic(),
+                                message.getAnnouncement().getGames(0).getPlayers(),
+                                message.getAnnouncement().getGames(0).getConfig().getStateDelayMs()));
+
+                    } catch (SocketTimeoutException e) {
+                        //e.printStackTrace();
+                    }
+                    finally {
+                        dataMulticastServer.deleteLeftGames();
+                    }
+                }
+
+
 
         } catch (IOException e) {
             e.printStackTrace();

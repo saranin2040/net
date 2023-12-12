@@ -1,10 +1,7 @@
 package org.example.Controller;
 
 import org.example.BusinessLogic.BusinessLogic;
-import org.example.BusinessLogic.Network.Data.DataGameAnnouncement;
 
-import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.regex.Matcher;
@@ -24,39 +21,11 @@ public class JoinController implements ActionListener
         Pattern pattern = Pattern.compile("\\[(.*?)\\]");
         Matcher matcher = pattern.matcher(string);
 
-         ip=null;
+        ip=null;
 
         if (matcher.find()) {
-            // звлекаем подстроку между квадратными скобками
              ip = matcher.group(1);
         }
-
-
-//        SwingWorker<Void, Void> worker = new SwingWorker<>() {
-//            @Override
-//            protected Void doInBackground() {
-//                        Pattern pattern = Pattern.compile("\\[(.*?)\\]");
-//        Matcher matcher = pattern.matcher(string);
-//
-//        String ip=null;
-//
-//        if (matcher.find()) {
-//            // звлекаем подстроку между квадратными скобками
-//             ip = matcher.group(1);
-//        }
-//                //bc.joinToGame(ip, gameName);
-//                return null;
-//            }
-//
-//            @Override
-//            protected void done() {
-//                // Этот метод выполняется в EDT после завершения doInBackground
-//                System.err.println("Master Value: " + " " + gameName);
-//            }
-//        };
-//
-//        worker.execute();
-
 
         thread=new Thread(new Runnable()
         {
@@ -67,10 +36,7 @@ public class JoinController implements ActionListener
         });
         thread.start();
 
-
-//
-        System.err.println("Master Value: " + " " + gameName);
-//        System.err.println("Master Value: "+ip+" "+gameName);
+        System.out.println("Joined to " + gameName);
     }
 
     public void setInf(String string, String gameName)

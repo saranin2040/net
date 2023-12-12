@@ -12,23 +12,6 @@ import java.util.Random;
 
 public class Custom extends JPanel
 {
-    //private final Timer  timer;
-    public Game game;
-    private int myId;
-    public Custom(BusinessLogic bc){
-        //setBackground(Color.BLACK);
-        //this.game = game;
-        //timer = new Timer(game.time,this);
-        //timer.start();
-//        addKeyListener(new ControllerKeys(bc));
-////        setFocusable(true);
-//        setFocusable(true);
-//        requestFocus();
-
-
-
-    }
-
     private String[][] generateRandomSeedMatrix(int rows, int cols) {
         String[][] matrix = new String[rows][cols];
         Random seedRandom = new Random();
@@ -51,8 +34,6 @@ public class Custom extends JPanel
             sed=true;
         }
 
-
-
         width=getWidth()/game.getField().getWidth();
         height=getHeight()/game.getField().getHeight();
         this.game=game;
@@ -69,17 +50,6 @@ public class Custom extends JPanel
             }
         }
     }
-//    private void paintFoods(Graphics g){
-//        Graphics2D g2 = (Graphics2D) g;
-//        ArrayList<Coord> coords = game.getFood();
-//        //System.out.println("-----------"+coords);
-//        for (Coord c:coords){
-//            Ellipse2D el = new Ellipse2D.Double(c.x+game.field.sizeBlock/4, c.y+game.field.sizeBlock/4, game.field.sizeBlock/2, game.field.sizeBlock/2);
-//            g2.setColor(Color.RED);
-//            g2.fill(el);
-//            g2.draw(el);
-//        }
-//    }
     private void paintSnakes(Graphics g)
     {
         try {
@@ -119,17 +89,17 @@ public class Custom extends JPanel
                                 g2.drawImage(image, (int) (body.get(i).x * width), (int) (body.get(i).y * height), (int) width, (int) height, null);
                             } else {
 
-                                if ((isMore(body.get(i).y, body.get(i + 1).y) && isMore(body.get(i).x, body.get(i - 1).x))
-                                        || (isMore(body.get(i).y, body.get(i - 1).y) && isMore(body.get(i).x, body.get(i + 1).x))) {
+                                if ((isMore(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x, game.getField().getHeight()))
+                                        || (isMore(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x, game.getField().getHeight()))) {
                                     imagePath = "src/main/resources/bodyDR.png";
-                                } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x))
-                                        || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x))) {
+                                } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x, game.getField().getHeight()))
+                                        || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x, game.getField().getHeight()))) {
                                     imagePath = "src/main/resources/bodyUR.png";
                                 } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
                                         || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
                                     imagePath = "src/main/resources/bodyUL.png";
-                                } else if ((isMore(body.get(i).y, body.get(i + 1).y) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
-                                        || (isMore(body.get(i).y, body.get(i - 1).y) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
+                                } else if ((isMore(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
+                                        || (isMore(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
                                     imagePath = "src/main/resources/bodyDL.png";
                                 } else if ((body.get(i).y - body.get(i + 1).y == 0 && body.get(i).x - body.get(i - 1).x != 0)
                                         || (body.get(i).y - body.get(i - 1).y == 0 && body.get(i).x - body.get(i + 1).x != 0)) {
@@ -177,17 +147,17 @@ public class Custom extends JPanel
                                 g2.drawImage(image, (int) (body.get(i).x * width), (int) (body.get(i).y * height), (int) width, (int) height, null);
                             } else {
 
-                                if ((isMore(body.get(i).y, body.get(i + 1).y) && isMore(body.get(i).x, body.get(i - 1).x))
-                                        || (isMore(body.get(i).y, body.get(i - 1).y) && isMore(body.get(i).x, body.get(i + 1).x))) {
+                                if ((isMore(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x, game.getField().getHeight()))
+                                        || (isMore(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x, game.getField().getHeight()))) {
                                     imagePath = "src/main/resources/bodyDR_enemy.png";
-                                } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x))
-                                        || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x))) {
+                                } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i - 1).x, game.getField().getHeight()))
+                                        || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isMore(body.get(i).x, body.get(i + 1).x, game.getField().getHeight()))) {
                                     imagePath = "src/main/resources/bodyUR_enemy.png";
                                 } else if ((isLess(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
                                         || (isLess(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
                                     imagePath = "src/main/resources/bodyUL_enemy.png";
-                                } else if ((isMore(body.get(i).y, body.get(i + 1).y) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
-                                        || (isMore(body.get(i).y, body.get(i - 1).y) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
+                                } else if ((isMore(body.get(i).y, body.get(i + 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i - 1).x, game.getField().getWidth()))
+                                        || (isMore(body.get(i).y, body.get(i - 1).y, game.getField().getHeight()) && isLess(body.get(i).x, body.get(i + 1).x, game.getField().getWidth()))) {
                                     imagePath = "src/main/resources/bodyDL_enemy.png";
                                 } else if ((body.get(i).y - body.get(i + 1).y == 0 && body.get(i).x - body.get(i - 1).x != 0)
                                         || (body.get(i).y - body.get(i - 1).y == 0 && body.get(i).x - body.get(i + 1).x != 0)) {
@@ -230,9 +200,9 @@ public class Custom extends JPanel
         }
     }
 
-    private boolean isMore(int x,int y)
+    private boolean isMore(int x,int y,int size)
     {
-        return (x-y>0 || x-y==-9) && x-y!=9;
+        return (x-y>0 || x-y==-size) && x-y!=size;
     }
 
     private boolean isLess(int x,int y,int size)
@@ -248,50 +218,10 @@ public class Custom extends JPanel
         paintSnakes(g);
     }
 
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-////        if (new Random().nextInt(2)==0){
-////            HashMap<Integer, Direction> f=new HashMap<>();
-////            switch (new Random().nextInt(4)){
-////                case (0)->f.put(1, Direction.UP);
-////                case (1)->f.put(1, Direction.DOWN);
-////                case (2)->f.put(1, Direction.RIGHT);
-////                case (3)->f.put(1, Direction.LEFT);
-////            }
-////
-////            game.go(f);
-////        }else
-//        game.go(new HashMap<>());
-//        game.checkDied();
-//        game.checkFood();
-//        repaint();
-//    }
-//    public class FieldKeyListener extends KeyAdapter {
-//        @Override
-//        public void keyPressed(KeyEvent e) {
-//            super.keyPressed(e);
-//            int key = e.getKeyCode();
-//            if(key == KeyEvent.VK_A || key == KeyEvent.VK_LEFT){
-//                game.getSnake().get(myId).changeDirection(Direction.valueOf(SnakesProto.Direction.LEFT.toString()));
-//            }
-//            if(key == KeyEvent.VK_D || key == KeyEvent.VK_RIGHT){
-//                game.getSnake().get(myId).changeDirection(Direction.valueOf(SnakesProto.Direction.RIGHT.toString()));
-//            }
-//            if(key == KeyEvent.VK_W || key == KeyEvent.VK_UP){
-//                game.getSnake().get(myId).changeDirection(Direction.valueOf(SnakesProto.Direction.UP.toString()));
-//            }
-//            if(key == KeyEvent.VK_S || key == KeyEvent.VK_DOWN){
-//                game.getSnake().get(myId).changeDirection(Direction.valueOf(SnakesProto.Direction.DOWN.toString()));
-//            }
-//            if(key == KeyEvent.VK_ESCAPE){
-//                System.exit(1);
-//            }
-//        }
-//    }
-
     int width;
     int height;
     String[][] seedMatrix;
+    public Game game;
 
     ArrayList<String> imagesField=new ArrayList<>()
     {{
