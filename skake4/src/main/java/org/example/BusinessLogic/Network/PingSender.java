@@ -12,10 +12,10 @@ import java.util.concurrent.locks.Lock;
 
 public class PingSender implements Runnable
 {
-    public PingSender(MulticastSocket socket, Lock sockeLock,DataServer dataServer)
+    public PingSender(MulticastSocket socket,DataServer dataServer)
     {
         this.socket=socket;
-        this.socketLock=sockeLock;
+        //this.socketLock=sockeLock;
         this.dataServer=dataServer;
     }
     public void run()
@@ -31,7 +31,7 @@ public class PingSender implements Runnable
                     InetAddress receiverAddress = InetAddress.getByName(adress.getIp());
                     DatagramPacket packet = new DatagramPacket(message, message.length, receiverAddress, adress.getPort());
 
-                    socketLock.lock();
+                    //socketLock.lock();
                     socket.send(packet);
 
                     //System.out.println("[PING] send {ip:" + adress.getIp() + " port: "+adress.getPort()+"}");
@@ -39,7 +39,7 @@ public class PingSender implements Runnable
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
-                    socketLock.unlock();
+                    //socketLock.unlock();
                 }
             }
         }
@@ -47,6 +47,5 @@ public class PingSender implements Runnable
 
 
     private final MulticastSocket socket;
-    private final Lock socketLock;
     private final DataServer dataServer;
 }

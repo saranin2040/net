@@ -147,7 +147,7 @@ public class Visual extends JFrame {
         requestFocus();
         setLocationRelativeTo(null);
 
-        timer = new Timer(10, new ActionListener() {
+        timer = new Timer(50, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 update2(bc.getGame());

@@ -163,6 +163,7 @@ public class BusinessLogic
                 Integer playerId = gameMaster.addPlayer(accededPlayers.get(msgSeq));
                 if (playerId != null) {
                     network.sendAckMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(),game.getMainPlayer().getId(), playerId,msgSeq);
+                    network.setJoining(new Adress(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort()));
                 } else {
                     network.sendErrorMsg(accededPlayers.get(msgSeq).getIpAddress(), accededPlayers.get(msgSeq).getPort(), msgSeq,"You can't join");
                 }
@@ -210,18 +211,19 @@ public class BusinessLogic
 
                 if (game instanceof GameMaster)
                 {
+                    network.sendGameState(game);
                     GameMaster gameMaster = (GameMaster) game;
                     gameMaster.deletePlayers(network.getOfflineReceivers());
                     addPlayers();
                     setDeputy(gameMaster);
-                    network.sendGameState(game);
+
                     network.updateDataAnnouncment(game);
                 }
 
-                if (game.getSnakes().size()==0)
-                {
-                    gameOver();
-                }
+//                if (game.getSnakes().size()==0)
+//                {
+//                    gameOver();
+//                }
             }
         }
     }

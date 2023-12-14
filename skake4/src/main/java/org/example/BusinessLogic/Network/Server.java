@@ -31,9 +31,17 @@ public class Server implements Runnable
 
             socket.setNetworkInterface(networkInterface);
 
-            socketLock= new ReentrantLock();
-            pingSender=new Thread(new PingSender(socket,socketLock,dataServer));
+            //socketLock= new ReentrantLock();
+            pingSender=new Thread(new PingSender(socket,dataServer));
             pingSender.start();
+
+//            receiver=new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    receiveData();
+//                }
+//            });
+//            receiver.start();
         }
         catch (IOException e)
         {
@@ -50,6 +58,7 @@ public class Server implements Runnable
             dataServer.deleteOfflineReceivers();
         }
         pingSender.interrupt();
+        //receiver.interrupt();
     }
 
     private void sendData()
@@ -64,18 +73,27 @@ public class Server implements Runnable
         {
             checkToDo(dataGameMessage);
 
-            socketLock.lock();
+            //socketLock.lock();
             try
             {
                 DatagramPacket packet=createPacket(dataGameMessage);
                 socket.send(packet);
+
+
+
+//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+////                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                ) {
+//    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | "+ (System.currentTimeMillis()-dataGameMessage.timeCreate));
+//                    timeSend=System.currentTimeMillis();
+//}
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
             finally
             {
-                socketLock.unlock();
+                //socketLock.unlock();
             }
         }
     }
@@ -84,7 +102,7 @@ public class Server implements Runnable
     {
         if (Math.abs(System.currentTimeMillis()-timeMulticast)>=LIMIT_MULTICAST)
         {
-            socketLock.lock();
+            //socketLock.lock();
             try
             {
                 DatagramPacket packet =createMulticastPacket();
@@ -95,7 +113,7 @@ public class Server implements Runnable
             }
             finally
             {
-                socketLock.unlock();
+                //socketLock.unlock();
                 timeMulticast=System.currentTimeMillis();
             }
         }
@@ -103,34 +121,45 @@ public class Server implements Runnable
 
     private void receiveData()
     {
-        try
-        {
-            socketLock.lock();
-            socket.setSoTimeout(1);
+        //while (!Thread.interrupted()) {
+            try {
+                //socketLock.lock();
 
-            byte[] buffer = new byte[SIZE_RECEIVE_DATA];
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                socket.setSoTimeout(1);
 
-            try
-            {
-                socket.receive(packet);
-                dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
+                byte[] buffer = new byte[SIZE_RECEIVE_DATA];
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-                SnakesProto.GameMessage message=parseFrom(packet);
+                try {
+                    socket.receive(packet);
 
-                processMessage(message, new Adress(packet.getAddress().getHostAddress(),packet.getPort()));
-                sendAck(message, new Adress(packet.getAddress().getHostAddress(),packet.getPort()));
+                    SnakesProto.GameMessage message = parseFrom(packet);
+                    dataServer.updateTimeReceiver(packet.getAddress().getHostAddress(), packet.getPort());
+
+//                    if (message.getTypeCase() != SnakesProto.GameMessage.TypeCase.ACK
+//                            && message.getTypeCase() != SnakesProto.GameMessage.TypeCase.PING
+////                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+//                    ) {
+//                        System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq() + " | " + (System.currentTimeMillis() - timeReceive));
+//                        timeReceive = System.currentTimeMillis();
+//                    }
+                    //timeReceive=System.currentTimeMillis();
+
+
+
+                    processMessage(message, new Adress(packet.getAddress().getHostAddress(), packet.getPort()));
+                    sendAck(message, new Adress(packet.getAddress().getHostAddress(), packet.getPort()));
+
+
+                } catch (SocketTimeoutException e) {
+                    //System.out.println("No data received within the timeout period. Continue with the code.");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                //socketLock.unlock();
             }
-            catch (SocketTimeoutException e)
-            {
-                //System.out.println("No data received within the timeout period. Continue with the code.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
-            socketLock.unlock();
-        }
+        //}
     }
     private void processRoleChangeMsg(Adress adressFrom,SnakesProto.GameMessage message)
     {
@@ -172,6 +201,11 @@ public class Server implements Runnable
             dataServer.setJoin(message);
         }
         dataServer.deleteGameMessage(adressFrom,message);
+//
+//        if (message.getTypeCase() != SnakesProto.GameMessage.TypeCase.ACK &&
+//                message.getTypeCase() != SnakesProto.GameMessage.TypeCase.PING ) {
+//            System.err.println("[DELETE] send {" + message.getTypeCase() + "}");
+//        }
     }
 
     private void processJoinMsg(Adress adressFrom, SnakesProto.GameMessage message)
@@ -259,6 +293,7 @@ public class Server implements Runnable
         }
         else if (dataGameMessage.getGameMessage().getTypeCase()== SnakesProto.GameMessage.TypeCase.ACK)
         {
+
             dataServer.deleteGameMessage(new Adress(dataGameMessage.getIp(),dataGameMessage.getPort()),dataGameMessage.getGameMessage());
         }
     }
@@ -280,37 +315,25 @@ public class Server implements Runnable
     }
 
 
-//                    if (message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-//                        && message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.PING
-////                        //&& message.getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-//                ) {
-//    System.out.println("[SERVER] Received {" + message.getTypeCase() + "} msgSeq=" + message.getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeReceive));
-//    // System.out.println();
-//    timeReceive=System.currentTimeMillis();
-//}
 
 
 
-//    //                System.out.println("send through "+Math.abs(System.currentTimeMillis()-timeSend));
-////                timeSend=System.currentTimeMillis();
-//
-//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-////                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-//                ) {
-//    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | send through "+Math.abs(System.currentTimeMillis()-timeSend));
-//    timeSend=System.currentTimeMillis();
-//}
+
+
 
     private MulticastSocket socket;
-    private Lock socketLock;
+    //private Lock socketLock;
     private final DataServer dataServer;
     private Thread pingSender;
+    private Thread receiver;
 
     private long msgSeqState=-1;
 
     private long timeMulticast=System.currentTimeMillis();
+    private long timeSend=System.currentTimeMillis();
+    private long timeReceive=System.currentTimeMillis();
     private static final String MULTICAST_GROUP="239.192.0.4";
     private static final int MULTICAST_PORT=9192;
     private static final int LIMIT_MULTICAST=1000;
-    private static final int SIZE_RECEIVE_DATA=1024;
+    private static final int SIZE_RECEIVE_DATA=4096;
 }

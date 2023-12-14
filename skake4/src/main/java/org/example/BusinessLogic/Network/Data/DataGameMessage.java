@@ -58,7 +58,8 @@ public class DataGameMessage
         return false;
     }
 
-    private long timeLastSend=System.currentTimeMillis();
+    private long timeLastSend=0;
+    public long timeCreate=System.currentTimeMillis();
     private String ip;
     private int port;
     private final SnakesProto.GameMessage gameMessage;

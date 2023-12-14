@@ -283,6 +283,11 @@ public class Network implements ReceiveNeedInformation
         return null;
     }
 
+    public void setJoining(Adress adress)
+    {
+        dataServer.setjoining(adress);
+    }
+
     Thread server=null;
     DataServer dataServer=null;
     DataMulticastServer dataMulticastServer=new DataMulticastServer();

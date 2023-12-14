@@ -170,9 +170,9 @@ public class PlayerMaster implements Player
     }
     private int score;
     private String name;
-    private int id=-1;
+    private int id=0;
     private String ipAddress=null;
-    private int port=-1;
+    private int port=0;
     private SnakesProto.NodeRole role;
     private SnakesProto.PlayerType playersType;
 

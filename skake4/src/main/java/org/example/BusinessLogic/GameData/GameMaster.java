@@ -67,8 +67,11 @@ public class GameMaster implements GameUpdate
         for (Snake snake:game.getSnakes())
         {
             this.snakes.put(snake.getId(),new SnakeMaster(snake));
-            if (snake.getState()!= SnakesProto.GameState.Snake.SnakeState.ZOMBIE) {
-                this.players.get(snake.getId()).reallySetDirect(snake.getDirect());
+            if (snake.getState()!= SnakesProto.GameState.Snake.SnakeState.ZOMBIE)
+            {
+                if (this.players.get(snake.getId())!=null) {
+                    this.players.get(snake.getId()).reallySetDirect(snake.getDirect());
+                }
             }
 
             if (snake.getId()==idOldMaster)
