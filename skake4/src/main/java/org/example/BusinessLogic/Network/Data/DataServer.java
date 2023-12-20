@@ -13,8 +13,6 @@ public class DataServer
 {
     public DataServer(int delayMs)
     {
-        //System.err.println("NEW DATA");
-
         Receiver.setStateDelayMs(delayMs);
         DataGameMessage.setStateDelayMs(delayMs);
         STATE_DELAY_MS=delayMs;
@@ -22,8 +20,6 @@ public class DataServer
 
     public DataServer (Game game)
     {
-        //System.err.println("NEW DATA");
-
         Receiver.setStateDelayMs(game.getDelayMs());
         DataGameMessage.setStateDelayMs(game.getDelayMs());
         STATE_DELAY_MS=game.getDelayMs();
@@ -70,8 +66,7 @@ public class DataServer
 
     public boolean getCanJoin()
     {
-
-        return true; //TODO как понимать можно ли присоединиться?
+        return true;
     }
 
 
@@ -180,13 +175,8 @@ public class DataServer
             {
                 Receiver receiver =  receivers.get(adress);
 
-               // if (!receiver.isOffline()) {
-                    receiversAdress.offer(adress);
-                    return receiver.getDataGameMessage();
-                //}
-//                receivers.remove(adress);
-//                offlineReceivers.offer(adress);
-//                System.err.println("disconnect "+receiver.getIp()+":"+receiver.getPort());
+                receiversAdress.offer(adress);
+                return receiver.getDataGameMessage();
             }
         }
         return null;
@@ -196,27 +186,12 @@ public class DataServer
     {
         Receiver receiver = receivers.get(adressFrom);
 
-//        if (message.getTypeCase() != SnakesProto.GameMessage.TypeCase.ACK &&
-//                message.getTypeCase() != SnakesProto.GameMessage.TypeCase.PING ) {
-//            System.err.println("[DELETE] send {" + message.getTypeCase() + "}");
-//        }
-
         if (receiver != null)
         {
-
             if (message.getTypeCase()== SnakesProto.GameMessage.TypeCase.JOIN)
             System.err.println(message.getTypeCase());
             receiver.deleteGameMessage(message);
         }
-//
-//        for (Receiver receiver:receivers)
-//        {
-//            if (receiver.getIp().equals(adressFrom.getIp())&&receiver.getPort()==adressFrom.getPort())
-//            {
-//                receiver.deleteGameMessage(message);
-//                break;
-//            }
-//        }
     }
 
     public void updateTimeReceiver(String ip,int port)
@@ -225,15 +200,6 @@ public class DataServer
         if (receiver != null) {
             receiver.updateTimeReceive();
         }
-//
-//        for (Receiver receiver:receivers)
-//        {
-//            if (receiver.getIp().equals(ip)&&receiver.getPort()==port)
-//            {
-//                receiver.updateTimeReceive();
-//                break;
-//            }
-//        }
     }
 
     public boolean putGameMessagesAck(DataGameMessage dataGameMessage,int senderId,int receiverId)
@@ -246,13 +212,6 @@ public class DataServer
                 receiver2.putGameMessage(dataGameMessage,senderId,receiverId);
                 return true;
             }
-
-//            for (Receiver receiver : receivers) {
-//                if (receiver.getIp().equals(dataGameMessage.getIp()) && receiver.getPort() == dataGameMessage.getPort()) {
-//                    receiver.putGameMessage(dataGameMessage);
-//                    return true;
-//                }
-//            }
 
             Receiver receiver = new Receiver(dataGameMessage.getIp(), dataGameMessage.getPort());
             receiver.putGameMessage(dataGameMessage,senderId,receiverId);
@@ -273,13 +232,6 @@ public class DataServer
                 receiver2.putGameMessage(dataGameMessage);
                 return true;
             }
-
-//            for (Receiver receiver : receivers) {
-//                if (receiver.getIp().equals(dataGameMessage.getIp()) && receiver.getPort() == dataGameMessage.getPort()) {
-//                    receiver.putGameMessage(dataGameMessage);
-//                    return true;
-//                }
-//            }
 
             Receiver receiver = new Receiver(dataGameMessage.getIp(), dataGameMessage.getPort());
             receiver.putGameMessage(dataGameMessage);
@@ -310,40 +262,30 @@ public class DataServer
         if (receiver2 != null) {
             receiver2.setJoining();
         }
-
-//        for (Receiver receiver : receivers) {
-//            if (receiver.getIp().equals(adress.getIp()) && receiver.getPort() == adress.getPort()) {
-//                //receiver.setJoining();
-//                return;
-//            }
-//        }
-    }
-
-    public void deleteReceiver(Adress adress)
-    {
-
     }
 
     public void deleteOfflineReceivers()
     {
-        Iterator<Adress> iterator = receiversAdress.iterator();
-        while (iterator.hasNext())
-        {
-            Adress adress = iterator.next();
-            if (receivers.get(adress).isOffline())
-            {
-                offlineReceivers.offer(adress);
-                System.err.println("disconnect "+adress.getIp()+":"+adress.getPort());
-                iterator.remove();
+        synchronized (receiversAdress) {
+            Iterator<Adress> iterator = receiversAdress.iterator();
+            while (iterator.hasNext()) {
+                Adress adress = iterator.next();
+                if (receivers.get(adress).isOffline()) {
+                    offlineReceivers.offer(adress);
+                    System.err.println("disconnect " + adress.getIp() + ":" + adress.getPort());
+                    iterator.remove();
+                }
             }
         }
     }
 
     public ArrayList<Adress> getOfflineReceivers()
     {
-        ArrayList<Adress> temp = new ArrayList<>(offlineReceivers);
-        offlineReceivers.clear();//TODO ...
-        return temp;
+        synchronized (offlineReceivers) {
+            ArrayList<Adress> temp = new ArrayList<>(offlineReceivers);
+            offlineReceivers.clear();
+            return temp;
+        }
     }
 
     public boolean isOffline(Adress adress)
@@ -367,27 +309,11 @@ public class DataServer
         if (receiver != null) {
             receiver.redirection(toAdress);
         }
-//        for (Receiver receiver:receivers)
-//        {
-//            if (receiver.getIp().equals(fromAdress.getIp())&&receiver.getPort()==fromAdress.getPort())
-//            {
-//                receiver.redirection(toAdress);
-//            }
-//        }
     }
 
     public Receiver getReceiver(Adress adress)
     {
         return receivers.get(adress);
-//
-//        for (Receiver receiver:receivers)
-//        {
-//            if (receiver.getIp().equals(adress.getIp())&&receiver.getPort()==adress.getPort())
-//            {
-//                return receiver;
-//            }
-//        }
-//        return null;
     }
 
     public void setServerRole( SnakesProto.NodeRole role)
@@ -417,31 +343,29 @@ public class DataServer
         this.deputy = deputy;
     }
 
-    private String gameName="my favorite game";
+    private volatile String gameName="my favorite game";
 
-    private DataGameConfig dataGameConfig;
+    private volatile DataGameConfig dataGameConfig;
 
-    private SnakesProto.NodeRole serverRole= SnakesProto.NodeRole.NORMAL;
+    private volatile SnakesProto.NodeRole serverRole= SnakesProto.NodeRole.NORMAL;
 
     private final HashMap<Adress, SnakesProto.GameMessage> changedPlayerDirection=new HashMap<>();
 
     private List<Player> players = Collections.synchronizedList(new ArrayList<>());
 
-    private int msgSeq=0;
+    private volatile int msgSeq=0;
 
     private final ArrayList<AccededPlayer> accededPlayers=new ArrayList<>();
 
-    private boolean deputy=false;
-    private Adress master=null;
+    private volatile boolean deputy=false;
+    private volatile Adress master=null;
 
     private CompletableFuture<SnakesProto.GameMessage> futureCanJoin = new CompletableFuture<>();
     private CompletableFuture<SnakesProto.GameState> futureGameState = new CompletableFuture<>();
-
-    //BlockingQueue<Receiver> receivers = new LinkedBlockingQueue<>();
     ConcurrentHashMap<Adress, Receiver> receivers = new ConcurrentHashMap<>();
     BlockingQueue<Adress> offlineReceivers = new LinkedBlockingQueue<>();
     List<Adress> wantedViewers = Collections.synchronizedList(new ArrayList<>());
     BlockingQueue<Adress> receiversAdress = new LinkedBlockingQueue<>();
 
-    public int STATE_DELAY_MS=5000;
+    private int STATE_DELAY_MS;
 }

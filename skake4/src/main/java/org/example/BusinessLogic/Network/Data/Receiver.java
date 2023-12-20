@@ -201,7 +201,7 @@ public class Receiver
     private int port;
     private int senderId=0;
     private int receiverId=0;
-    private long timeLastSend=System.currentTimeMillis();
+    private long timeLastSend=0;
     private long timeLastReceive=System.currentTimeMillis();
     ConcurrentHashMap<Long, DataGameMessage> gameMessages = new ConcurrentHashMap<>();
     private BlockingQueue<Long> gameMessagesSeq = new LinkedBlockingQueue<>();

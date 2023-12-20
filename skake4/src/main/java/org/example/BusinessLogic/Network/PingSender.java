@@ -22,6 +22,15 @@ public class PingSender implements Runnable
     {
         while(!Thread.interrupted())
         {
+
+            try{
+                Thread.sleep(1);
+            }
+            catch (Exception e)
+            {
+
+            }
+
             ArrayList<Adress> dataGameMessages = dataServer.getPingReceivers();
 
             for (Adress adress : dataGameMessages) {

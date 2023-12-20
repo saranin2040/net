@@ -12,6 +12,6 @@ public class DataTimeSend
         timeLastSend=System.currentTimeMillis();
     }
 
-    private long timeLastSend=System.currentTimeMillis();
+    private long timeLastSend=0;
 
 }

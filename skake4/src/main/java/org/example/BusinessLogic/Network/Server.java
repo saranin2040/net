@@ -81,12 +81,12 @@ public class Server implements Runnable
 
 
 
-//                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
-////                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
-//                ) {
-//    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | "+ (System.currentTimeMillis()-dataGameMessage.timeCreate));
-//                    timeSend=System.currentTimeMillis();
-//}
+                if (dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.ACK
+//                       // &&  dataGameMessage.getGameMessage().getTypeCase()!= SnakesProto.GameMessage.TypeCase.STATE
+                ) {
+    System.out.println("[SERVER] send {" + dataGameMessage.getGameMessage().getTypeCase() + "} msgSeq=" + dataGameMessage.getGameMessage().getMsgSeq()+" | "+ (System.currentTimeMillis()-dataGameMessage.timeCreate));
+                    timeSend=System.currentTimeMillis();
+}
             }
             catch (IOException e) {
                 e.printStackTrace();
